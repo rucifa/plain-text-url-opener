@@ -4,11 +4,50 @@
 
 **Double-click plain-text URLs to open them.**
 
-No DOM linkification, no background full-page scanning, and no settings UI required.
+Plain Text URL Opener is a **userscript**. It requires a userscript manager such as
+[Violentmonkey](https://violentmonkey.github.io/) or [Tampermonkey](https://www.tampermonkey.net/).
 
-[繁體中文](./README.md) · **English** · [Regression Fixture](https://rucifa.github.io/plain-text-url-opener/)
+Once installed, double-click a plain-text URL on a webpage to open it. The script does not rewrite the whole page into links or continuously scan the page in the background.
+
+**[Install Plain Text URL Opener](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)** · [Open the test page](https://rucifa.github.io/plain-text-url-opener/)
+
+[繁體中文](./README.md) · **English**
 
 </div>
+
+---
+
+## Installation
+
+Plain Text URL Opener is a **userscript**. If you have not used userscripts before, install a userscript manager in your browser first, then install the script itself.
+
+### 1. Install a userscript manager
+
+Common options include:
+
+| Userscript manager | Notes | Official link |
+|---|---|---|
+| **Violentmonkey** | Popular open-source userscript manager | https://violentmonkey.github.io/ |
+| **Tampermonkey** | Popular cross-browser userscript manager | https://www.tampermonkey.net/ |
+| **Greasemonkey** | Long-running userscript manager for Firefox | https://addons.mozilla.org/firefox/addon/greasemonkey/ |
+
+Plain Text URL Opener uses `@grant none` and does not depend on manager-specific GM APIs. However, the project has not yet completed exhaustive validation across every browser × userscript-manager combination, so the table lists common options rather than claiming full compatibility for every combination.
+
+### 2. Install Plain Text URL Opener
+
+After installing a userscript manager, open the script below:
+
+**[Install `plain-text-url-opener.user.js`](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)**
+
+Normally, your userscript manager should open its installation screen automatically. If it does not intercept the Raw URL, import that URL manually in the manager.
+
+### GitHub Releases
+
+Stable versions are intended to be published on [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases) using the same primary asset name:
+
+`plain-text-url-opener.user.js`
+
+If you want to stay on a specific version, download the `.user.js` asset from that release. GitHub's automatically generated `Source code (zip)` / `Source code (tar.gz)` archives are mainly for source-code snapshots and are not the primary installation files for regular users.
 
 ---
 
@@ -49,19 +88,19 @@ Plain Text URL Opener lets you act on the URL directly without selecting the who
 
 These tools solve related problems, but they make **different design choices**. This is not a ranking; it is a quick way to see which approach fits your workflow.
 
-| Feature / design choice | **Plain Text URL Opener** | **Text Link** | **Linkify Plus Plus** |
+| Feature / design choice | **Plain Text URL Opener** | **[Text Link](https://addons.mozilla.org/firefox/addon/text-link/)** | **[Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus)** |
 |---|:---:|:---:|:---:|
 | Double-click plain-text URL to open directly | ✅ | ✅ | ❌ |
 | Works without first rewriting page text into links | ✅ | ✅ | ❌ |
 | Converts text URLs into real `<a>` links | ❌ | ❌ | ✅ |
 | Unicode / multibyte URL handling | ✅ | ✅ | ✅ |
-| Reconstruct URLs split across TextNodes | ❌ intentionally unsupported | ✅ | ⚠️ not explicitly promised in README |
+| Reconstruct URLs split across text nodes (TextNodes) | ❌ intentionally unsupported | ✅ | ⚠️ not explicitly promised in README |
 | Newly inserted text content | ✅ detected at interaction time | ⚠️ different implementation model | ✅ dynamic content support |
 | Custom rules | ❌ | — | ✅ |
 | Whitelist / blacklist | ❌ | — | ✅ |
 | Userscript distribution | ✅ | ❌ | ✅ |
 | Firefox extension | ❌ | ✅ | ✅ |
-| Public test page / testcase corpus | ✅ fixed fixture | ✅ | ✅ |
+| Public test page / fixed test cases | ✅ | ✅ | ✅ |
 
 > `❌` does not mean “worse”; it means that capability is **not the design direction chosen by that tool**.  
 > `⚠️` means the feature or implementation differs enough that a simple yes/no comparison would be misleading.  
@@ -97,40 +136,6 @@ Its historical testcase corpus was also an important reference when this project
 [Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus) takes a different approach: it **detects text URLs and converts them into real links**. It supports dynamic content, Unicode, custom rules, whitelist / blacklist controls, image embedding, and multiple trigger methods.
 
 If you want plain-text URLs to become clickable links directly inside the page, Linkify Plus Plus offers a broader feature set. Plain Text URL Opener intentionally avoids DOM linkification.
-
----
-
-## Installation
-
-Plain Text URL Opener is a **userscript**. If you have not used userscripts before, install a userscript manager in your browser first, then install the script itself.
-
-### 1. Install a userscript manager
-
-Common options include:
-
-| Userscript manager | Notes | Official link |
-|---|---|---|
-| **Violentmonkey** | Popular open-source userscript manager | https://violentmonkey.github.io/ |
-| **Tampermonkey** | Popular cross-browser userscript manager | https://www.tampermonkey.net/ |
-| **Greasemonkey** | Long-running userscript manager for Firefox | https://addons.mozilla.org/firefox/addon/greasemonkey/ |
-
-Plain Text URL Opener uses `@grant none` and does not depend on manager-specific GM APIs. However, the project has not yet completed exhaustive validation across every browser × userscript-manager combination, so the table lists common options rather than claiming full compatibility for every combination.
-
-### 2. Install Plain Text URL Opener
-
-After installing a userscript manager, open the script below:
-
-**[Install `plain-text-url-opener.user.js`](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)**
-
-Normally, your userscript manager should open its installation screen automatically. If it does not intercept the Raw URL, import that URL manually in the manager.
-
-### GitHub Releases
-
-Stable versions are intended to be published on [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases) using the same primary asset name:
-
-`plain-text-url-opener.user.js`
-
-If you want to stay on a specific version, download the `.user.js` asset from that release. GitHub's automatically generated `Source code (zip)` / `Source code (tar.gz)` archives are mainly for source-code snapshots and are not the primary installation files for regular users.
 
 ---
 
@@ -187,43 +192,59 @@ The goal is not to replace full-featured linkifiers. It is to make the “double
 
 ---
 
-## Version and validation
+## Version and testing
 
 Current stable version: **v1.0.5**
 
-v1.0.5 hardens scheme-less IDN handling, TLD / filename discrimination, bounded-scan behavior around long trailing punctuation, and restores multilingual adjacent-prose behavior. The complete Fixture v1.1 and Chromium acceptance suite pass.
+v1.0.5 improves scheme-less internationalized-domain handling, filename / TLD discrimination, URL boundaries in long text, and restores expected behavior when a domain is immediately followed by non-Latin prose.
 
-- Latest Acceptance Report: [`tests/acceptance/v1.0.5.md`](./tests/acceptance/v1.0.5.md)
-- Historical Acceptance Reports: [`tests/acceptance/`](./tests/acceptance/)
-- Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
+### Has this version been thoroughly tested?
 
-### Regression Fixture
+Yes. The current **public test page v1.1 contains 160 fixed test cases** covering ordinary URLs, internationalized domains, Unicode text, punctuation, long text, security boundaries, and historical regressions.
 
-The repository root [`index.html`](./index.html) is **Regression Fixture v1.1**.
+v1.0.5 passed the complete automated suite and real Chromium interaction testing.
 
-The fixture is versioned independently from userscript releases. Script changes are validated against the fixture; the fixture is not rewritten merely to make a new script release pass.
+- [Open the public test page](https://rucifa.github.io/plain-text-url-opener/)
+- [Read the v1.0.5 test report](./tests/acceptance/v1.0.5.md)
+- [Read the changelog](./CHANGELOG.md)
 
-**Live Fixture:** https://rucifa.github.io/plain-text-url-opener/
+<details>
+<summary>Show technical test results</summary>
+
+- URL parser checks: **150 / 150 PASS**
+- Real Chromium interaction checks: **162 / 162 PASS**
+- Unsupported-scheme security probes: **10 / 10 PASS**
+- Differential fuzzing: **10,000 cases, 0 unexpected differences**
+- Performance regression gate: **PASS**
+
+See the [v1.0.5 test report](./tests/acceptance/v1.0.5.md) for full details.
+
+</details>
+
+### Public test page
+
+The repository root [`index.html`](./index.html) is the fixed **public test page v1.1**. It defines whether each sample should be recognized as a URL and what result is expected.
+
+The expected results are independent of the current userscript implementation. If a new script version violates an unchanged expectation, the script should be fixed rather than rewriting the expected result merely to make the release pass.
+
+**Live test page:** https://rucifa.github.io/plain-text-url-opener/
 
 ---
 
-## Validation philosophy
+## Testing and quality principles
 
 Behavior changes should generally follow this sequence:
 
-1. Reproduce a concrete bug / regression.
+1. Reproduce a concrete bug or regression.
 2. Apply the smallest fix.
-3. Run deterministic regression tests, browser interaction tests, and relevant performance checks.
-4. Change permanent regression cases only for a real bug, a confirmed fixture error, or an intentional product-specification change.
+3. Run fixed regression tests, real browser interaction tests, and relevant performance checks.
+4. Change fixed test cases only when the test itself is wrong or the product specification intentionally changes.
 
 ---
 
 ## Background and acknowledgements
 
-Plain Text URL Opener's design and regression work were informed by publicly documented behavior and testcase ideas from related tools, especially:
-
-- **Text Link** — Piro
-- **Linkify Plus Plus** — eight04
+Plain Text URL Opener's design and testing approach were informed by the public documentation and test cases of [Text Link](https://addons.mozilla.org/firefox/addon/text-link/) (Piro) and [Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus) (eight04). Their different design approaches are described in the comparison section above.
 
 This repository's implementation is independently written. No source code from those projects is incorporated unless explicitly stated in this repository.
 

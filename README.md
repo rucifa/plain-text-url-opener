@@ -4,12 +4,52 @@
 
 **純文字網址雙擊開啟器**
 
-雙擊網頁上的純文字 HTTP(S) 網址，直接開啟。  
-不改寫正文 DOM、不做背景全頁掃描、不需要設定介面。
+Plain Text URL Opener 是一個 **userscript（使用者腳本）**，需要搭配
+[Violentmonkey（暴力猴）](https://violentmonkey.github.io/)、[Tampermonkey](https://www.tampermonkey.net/) 等 userscript 管理器使用。
 
-**繁體中文** · [English](./README.en.md) · [Regression Fixture](https://rucifa.github.io/plain-text-url-opener/)
+安裝後，只要在網頁上的**純文字網址直接雙擊**，就能開啟網址；不會把整個網頁的文字改寫成超連結，也不會在背景持續掃描整個頁面。
+
+**[安裝 Plain Text URL Opener](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)** · [開啟測試頁](https://rucifa.github.io/plain-text-url-opener/)
+
+**繁體中文** · [English](./README.en.md)
 
 </div>
+
+---
+
+## 安裝
+
+Plain Text URL Opener 是一個 **userscript（使用者腳本）**。第一次使用時，需要先在瀏覽器安裝 userscript 管理器，再安裝本腳本。
+
+### 1. 安裝 userscript 管理器
+
+你可以選擇常見的 userscript 管理器，例如：
+
+| Userscript 管理器 | 說明 | 官方連結 |
+|---|---|---|
+| **Violentmonkey（暴力猴）** | 常見的開源 userscript 管理器 | https://violentmonkey.github.io/ |
+| **Tampermonkey** | 常見的跨瀏覽器 userscript 管理器；中文社群有時俗稱「油猴」 | https://www.tampermonkey.net/ |
+| **Greasemonkey** | Firefox 上歷史悠久的 userscript 管理器 | https://addons.mozilla.org/firefox/addon/greasemonkey/ |
+
+> Tampermonkey 與 Greasemonkey 是不同的專案；中文社群雖常把 Tampermonkey 稱為「油猴」，但兩者不要混為同一個擴充套件。
+
+Plain Text URL Opener 使用 `@grant none`，不依賴特定管理器提供的 GM API。不過目前專案尚未對所有「瀏覽器 × userscript 管理器」組合進行完整相容性驗證，因此上表列的是常見選擇，不代表所有組合都已完整測試。
+
+### 2. 安裝 Plain Text URL Opener
+
+安裝 userscript 管理器後，開啟下面的腳本：
+
+**[安裝 `plain-text-url-opener.user.js`](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)**
+
+正常情況下，userscript 管理器會自動開啟安裝畫面。如果沒有自動攔截 Raw URL，也可以把上面的網址手動匯入管理器。
+
+### GitHub Releases
+
+正式 Stable 版本會在 [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases) 以同一個檔名提供：
+
+`plain-text-url-opener.user.js`
+
+如果你希望固定使用某個特定版本，建議從對應的 Release 下載這個 `.user.js` 檔案。GitHub 自動產生的 `Source code (zip)` / `Source code (tar.gz)` 主要用於原始碼封存，不是一般使用者的主要安裝方式。
 
 ---
 
@@ -50,19 +90,19 @@ Plain Text URL Opener 讓你直接在網址文字上操作，不需要先完整�
 
 這三個工具處理的問題相近，但**設計方向不同**。下面不是優劣排名，而是幫助你快速判斷哪一種方式比較適合自己。
 
-| 功能 / 設計取向 | **Plain Text URL Opener** | **Text Link** | **Linkify Plus Plus** |
+| 功能 / 設計取向 | **Plain Text URL Opener** | **[Text Link](https://addons.mozilla.org/firefox/addon/text-link/)** | **[Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus)** |
 |---|:---:|:---:|:---:|
 | 雙擊純文字網址直接開啟 | ✅ | ✅ | ❌ |
 | 不先把正文改寫成連結 | ✅ | ✅ | ❌ |
 | 將文字網址轉成真正 `<a>` 連結 | ❌ | ❌ | ✅ |
 | Unicode / 多位元網址處理 | ✅ | ✅ | ✅ |
-| 跨 TextNode 重建完整網址 | ❌ 刻意不支援 | ✅ | ⚠️ README 未明確承諾 |
-| 新出現的文字內容 | ✅ 互動時即時辨識 | ⚠️ 實作方式不同 | ✅ 支援 dynamic content |
+| 跨文字節點（TextNode）重建完整網址 | ❌ 刻意不支援 | ✅ | ⚠️ README 未明確承諾 |
+| 網頁後來新增的文字內容 | ✅ 互動時即時辨識 | ⚠️ 實作方式不同 | ✅ 支援動態內容 |
 | 自訂規則 | ❌ | — | ✅ |
-| Whitelist / blacklist | ❌ | — | ✅ |
+| 白名單 / 黑名單 | ❌ | — | ✅ |
 | Userscript 形式 | ✅ | ❌ | ✅ |
 | Firefox 擴充套件 | ❌ | ✅ | ✅ |
-| 公開測試頁 / testcase | ✅ 固定 Fixture | ✅ | ✅ |
+| 公開測試頁 / 固定測試案例 | ✅ | ✅ | ✅ |
 
 > `❌` 不代表功能較差，而是代表該功能**不是這個工具選擇的設計方向**。  
 > `⚠️` 代表功能或實作方式與另外兩者不同，不適合用單一勾叉直接等同比較。  
@@ -101,42 +141,6 @@ Text Link 的歷史 testcase 也是本專案建立 regression 思維時的重要
 
 ---
 
-## 安裝
-
-Plain Text URL Opener 是一個 **userscript（使用者腳本）**。第一次使用時，需要先在瀏覽器安裝 userscript 管理器，再安裝本腳本。
-
-### 1. 安裝 userscript 管理器
-
-你可以選擇常見的 userscript 管理器，例如：
-
-| Userscript 管理器 | 說明 | 官方連結 |
-|---|---|---|
-| **Violentmonkey（暴力猴）** | 常見的開源 userscript 管理器 | https://violentmonkey.github.io/ |
-| **Tampermonkey** | 常見的跨瀏覽器 userscript 管理器；中文社群有時俗稱「油猴」 | https://www.tampermonkey.net/ |
-| **Greasemonkey** | Firefox 上歷史悠久的 userscript 管理器 | https://addons.mozilla.org/firefox/addon/greasemonkey/ |
-
-> Tampermonkey 與 Greasemonkey 是不同的專案；中文社群雖常把 Tampermonkey 稱為「油猴」，但兩者不要混為同一個擴充套件。
-
-Plain Text URL Opener 使用 `@grant none`，不依賴特定管理器提供的 GM API。不過目前專案尚未對所有「瀏覽器 × userscript 管理器」組合進行完整相容性驗證，因此上表列的是常見選擇，不代表所有組合都已完整測試。
-
-### 2. 安裝 Plain Text URL Opener
-
-安裝 userscript 管理器後，開啟下面的腳本：
-
-**[安裝 `plain-text-url-opener.user.js`](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)**
-
-正常情況下，userscript 管理器會自動開啟安裝畫面。如果沒有自動攔截 Raw URL，也可以把上面的網址手動匯入管理器。
-
-### GitHub Releases
-
-正式 Stable 版本會在 [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases) 以同一個檔名提供：
-
-`plain-text-url-opener.user.js`
-
-如果你希望固定使用某個特定版本，建議從對應的 Release 下載這個 `.user.js` 檔案。GitHub 自動產生的 `Source code (zip)` / `Source code (tar.gz)` 主要用於原始碼封存，不是一般使用者的主要安裝方式。
-
----
-
 ## 操作方式
 
 | 操作 | 結果 |
@@ -155,23 +159,23 @@ Plain Text URL Opener 使用 `@grant none`，不依賴特定管理器提供的 G
 - `www.` 網址
 - 依保守 TLD 規則辨識的裸網域
 - 明確 IPv4 URL
-- IPv6 URL
-- IDN / Punycode
-- Unicode path / query / fragment
+- IPv6 網址
+- 國際化網域名稱（IDN / Punycode）
+- 含中文等 Unicode 文字的網址路徑、查詢參數與 `#` 片段
 - 常見標點與括號邊界
 - 部分缺少開頭 `h` 的 `ttp://` / `ttps://`
-- Defanged URL 偵測，但禁止自動開啟
-- 同一 TextNode 中存在多個 URL
+- 安全化／去活化網址（例如 `hxxps://`）可辨識，但不會自動開啟
+- 同一段文字中存在多個網址
 
 ### ⛔ 刻意不支援 / 保守處理
 
-- 跨 TextNode 重建完整 URL
+- 跨文字節點（TextNode）重建完整網址
 - 裸 IPv4
 - 預設相對路徑
-- 廣泛的非 HTTP(S) URI scheme
-- 完整 Public Suffix List
-- closed Shadow DOM 內無法存取的內容
-- 部分 scheme-less IDN 維持保守辨識策略
+- 廣泛的非 HTTP(S) 網址協定
+- 完整的網域後綴清單（Public Suffix List）
+- 封閉式 Shadow DOM 內、腳本本來就無法存取的內容
+- 部分省略 `http://` / `https://` 的國際化網域仍採保守辨識策略
 
 這些是目前的產品邊界，不應自動視為 bug。
 
@@ -190,43 +194,59 @@ Plain Text URL Opener 使用 `@grant none`，不依賴特定管理器提供的 G
 
 ---
 
-## 版本與驗證
+## 版本與測試
 
-目前 Stable 版本：**v1.0.5**
+目前正式版本：**v1.0.5**
 
-v1.0.5 強化 scheme-less IDN、TLD / filename 判斷、長尾標點 bounded-scan 行為，並修復多語系相鄰文字 regression；完整 Fixture v1.1 與 Chromium 驗收均已通過。
+v1.0.5 強化了省略 `http://` / `https://` 的國際化網域辨識、檔名與網域尾碼判斷、長文字中的網址邊界處理，也修復了網址緊接多語系文字時可能辨識失敗的問題。
 
-- 最新 Acceptance Report：[`tests/acceptance/v1.0.5.md`](./tests/acceptance/v1.0.5.md)
-- 歷史 Acceptance Reports：[`tests/acceptance/`](./tests/acceptance/)
-- Changelog：[`CHANGELOG.md`](./CHANGELOG.md)
+### 這個版本有沒有完整測過？
 
-### Regression Fixture
+有。目前的**公開測試頁 v1.1 有 160 個固定測試案例**，涵蓋一般網址、國際化網域、中文與其他 Unicode 文字、標點符號、長文字、安全性邊界，以及過去曾經發生過的錯誤。
 
-Repo 根目錄的 [`index.html`](./index.html) 是 **Regression Fixture v1.1**。
+v1.0.5 已通過完整自動測試與實際 Chromium 瀏覽器操作測試。
 
-Fixture 是獨立於 userscript release version 的固定測試規格。腳本修改後要拿新版腳本去接受 Fixture 驗證，而不是修改 Fixture 讓新版腳本通過。
+- [開啟公開測試頁](https://rucifa.github.io/plain-text-url-opener/)
+- [查看 v1.0.5 版本測試報告](./tests/acceptance/v1.0.5.md)
+- [查看版本變更紀錄](./CHANGELOG.md)
 
-**Live Fixture：** https://rucifa.github.io/plain-text-url-opener/
+<details>
+<summary>查看較技術性的測試資料</summary>
+
+- URL 解析測試：**150 / 150 PASS**
+- Chromium 瀏覽器實際操作：**162 / 162 PASS**
+- 不支援協定的安全性測試：**10 / 10 PASS**
+- 隨機差異測試：**10,000 cases，0 個非預期差異**
+- 效能回歸檢查：**PASS**
+
+完整細節請見 [v1.0.5 版本測試報告](./tests/acceptance/v1.0.5.md)。
+
+</details>
+
+### 公開測試頁
+
+Repo 根目錄的 [`index.html`](./index.html) 是固定的**公開測試頁 v1.1**。它用來定義「每種文字應不應該被辨識成網址、應該得到什麼結果」。
+
+測試頁的預期結果獨立於目前腳本版本：如果新版腳本做錯了，應該修正腳本，而不是為了讓新版通過就改掉測試答案。
+
+**Live 測試頁：** https://rucifa.github.io/plain-text-url-opener/
 
 ---
 
-## 驗證原則
+## 測試與品質原則
 
 每次功能修改原則上遵循：
 
-1. 先重現明確且可重現的 bug / regression。
+1. 先重現明確且可重現的問題／回歸錯誤。
 2. 採用最小修正。
-3. 執行 deterministic regression、瀏覽器互動測試與必要效能檢查。
-4. 只有發現真實 bug、Fixture 錯誤或產品規格正式變更時，才修改永久 regression case。
+3. 執行固定回歸測試、瀏覽器實際操作測試與必要的效能檢查。
+4. 只有發現真實程式錯誤、測試案例本身有誤，或產品規格正式變更時，才修改固定測試案例。
 
 ---
 
 ## 背景與致謝
 
-Plain Text URL Opener 的設計與 regression 測試曾參考相關工具的公開行為與 testcase，尤其包括：
-
-- **Text Link** — Piro
-- **Linkify Plus Plus** — eight04
+Plain Text URL Opener 在設計與測試方法上，曾參考 [Text Link](https://addons.mozilla.org/firefox/addon/text-link/)（Piro）與 [Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus)（eight04）的公開說明與測試案例。兩者與本專案的設計差異已在上方「與 Text Link / Linkify Plus Plus 有什麼不同？」中說明。
 
 本 repo 的實作為獨立撰寫；除非 repo 內另有明確註記，否則未直接納入上述專案的原始碼。
 
