@@ -17,9 +17,17 @@
 - Defanged URL 可以辨識，但不自動開啟
 - 以固定 Regression Fixture 鎖定回歸行為
 
+## 安裝
+
+需要相容的 userscript 管理器。
+
+**直接安裝：** [安裝 `plain-text-url-opener.user.js`](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)
+
+如果 userscript 管理器沒有自動攔截 Raw URL，請在管理器內手動匯入這個網址。
+
 ## 使用方式
 
-將 userscript 安裝到相容的 userscript 管理器後，在網頁上直接雙擊支援的純文字網址即可。
+安裝後，在網頁上直接雙擊支援的純文字網址即可。
 
 預設操作：
 
@@ -91,4 +99,10 @@ Plain Text URL Opener 的設計過程參考過一些長期處理「純文字網�
 
 ## License
 
-目前尚未選定 License。在正式加入授權條款前，不應假設本 repo 已授與超出適用法律與平台條款之外的再利用、修改或再散布權利。
+Plain Text URL Opener 採用 **MIT License + Commons Clause License Condition v1.0**。
+
+你可以使用、修改與重新散布這個軟體，但不得依 Commons Clause 對「這個軟體本身」進行販售。
+
+完整條款請見 [`LICENSE`](./LICENSE)。
+
+由於包含商業販售限制，本專案屬於 source-available，而不是 OSI 定義下的 open source。
