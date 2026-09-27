@@ -132,10 +132,6 @@ Stable versions are intended to be published on [GitHub Releases](https://github
 
 If you want to stay on a specific version, download the `.user.js` asset from that release. GitHub's automatically generated `Source code (zip)` / `Source code (tar.gz)` archives are mainly for source-code snapshots and are not the primary installation files for regular users.
 
-### Source
-
-[`plain-text-url-opener.user.js`](./plain-text-url-opener.user.js)
-
 ---
 
 ## Controls
