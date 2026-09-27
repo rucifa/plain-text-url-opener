@@ -9,7 +9,7 @@ Plain Text URL Opener is a **userscript**. It requires a userscript manager such
 
 Once installed, double-click a plain-text URL on a webpage to open it. The script does not rewrite the whole page into links or continuously scan the page in the background.
 
-**[Install Plain Text URL Opener](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)** · [Open the test page](https://rucifa.github.io/plain-text-url-opener/)
+**[Open the test page](https://rucifa.github.io/plain-text-url-opener/)**
 
 [繁體中文](./README.md) · **English**
 
@@ -126,8 +126,6 @@ then Plain Text URL Opener is intentionally designed around that narrower use ca
 
 [Piro's Text Link](https://addons.mozilla.org/firefox/addon/text-link/) is a long-running Firefox extension built around the same core interaction: **double-click a plain-text URI to open it**. It explicitly supports URIs split across multiple TextNodes and multibyte URI text, while avoiding page rewriting.
 
-Its historical testcase corpus was also an important reference when this project established its regression-testing approach.
-
 - Firefox Add-ons: https://addons.mozilla.org/firefox/addon/text-link/
 - Historical documentation / testcases: https://piro.sakura.ne.jp/xul/textlink/index.html.en
 
@@ -136,6 +134,12 @@ Its historical testcase corpus was also an important reference when this project
 [Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus) takes a different approach: it **detects text URLs and converts them into real links**. It supports dynamic content, Unicode, custom rules, whitelist / blacklist controls, image embedding, and multiple trigger methods.
 
 If you want plain-text URLs to become clickable links directly inside the page, Linkify Plus Plus offers a broader feature set. Plain Text URL Opener intentionally avoids DOM linkification.
+
+### References and acknowledgements
+
+Plain Text URL Opener's design and testing approach were informed by the public documentation and test cases of the two related projects above. [Text Link](https://addons.mozilla.org/firefox/addon/text-link/)'s historical testcase corpus was an important reference for this project's fixed-regression-testing approach, while [Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus) provides a useful contrast through its linkification-oriented design.
+
+This repository's implementation is independently written. No source code from those projects is incorporated unless explicitly stated in this repository.
 
 ---
 
@@ -239,14 +243,6 @@ Behavior changes should generally follow this sequence:
 2. Apply the smallest fix.
 3. Run fixed regression tests, real browser interaction tests, and relevant performance checks.
 4. Change fixed test cases only when the test itself is wrong or the product specification intentionally changes.
-
----
-
-## Background and acknowledgements
-
-Plain Text URL Opener's design and testing approach were informed by the public documentation and test cases of [Text Link](https://addons.mozilla.org/firefox/addon/text-link/) (Piro) and [Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus) (eight04). Their different design approaches are described in the comparison section above.
-
-This repository's implementation is independently written. No source code from those projects is incorporated unless explicitly stated in this repository.
 
 ---
 
