@@ -1,8 +1,10 @@
 # Plain Text URL Opener
 
+[English](./README.md) | [繁體中文](./README.zh-TW.md)
+
 A lightweight userscript for opening plain-text HTTP(S) URLs by double-clicking them.
 
-**繁體中文名稱：純文字網址雙擊開啟器**
+**Traditional Chinese name:** 純文字網址雙擊開啟器
 
 ## Design goals
 
@@ -21,7 +23,7 @@ Install the userscript in a compatible userscript manager. Then double-click a s
 
 Default interaction:
 
-- Double-click: open detected URL in a new tab
+- Double-click: open the detected URL in a new tab
 - Shift + double-click: reverse the open mode and use the current tab
 - Alt + double-click: select the detected URL without opening it
 
@@ -67,6 +69,21 @@ Changes should follow:
 4. Add a permanent regression case only when a real bug or an intentional specification change justifies it.
 
 Historical acceptance reports are preserved under [`tests/acceptance/`](./tests/acceptance/).
+
+## Background and acknowledgements
+
+Plain Text URL Opener was informed by long-standing tools that solve related plain-text URL problems, especially:
+
+- **Text Link** by Piro — its double-click-to-open workflow, its emphasis on handling URI text without rewriting page appearance, and its public testcase corpus were important references during design and regression testing.
+- **Linkify Plus Plus** by eight04 — a broader linkification userscript/extension that detects text URLs and converts them into links, with support for dynamic content, Unicode, and custom rules. Its approach helped clarify the intentionally narrower scope of Plain Text URL Opener: event-driven detection without DOM linkification or background full-page processing.
+
+This repository's implementation is independently written. No source code from those projects is incorporated unless explicitly stated in the repository.
+
+Related projects:
+
+- Text Link: https://addons.mozilla.org/firefox/addon/text-link/
+- Text Link historical documentation/testcases: https://piro.sakura.ne.jp/xul/textlink/index.html.en
+- Linkify Plus Plus: https://github.com/eight04/linkify-plus-plus
 
 ## Changelog
 
