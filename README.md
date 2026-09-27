@@ -192,17 +192,17 @@ Plain Text URL Opener 使用 `@grant none`，不依賴特定管理器提供的 G
 
 ## 版本與驗證
 
-目前 Stable 版本：**v1.0.4**
+目前 Stable 版本：**v1.0.5**
 
-v1.0.4 是 publication metadata release；URL parser、DOM handling 與使用者互動行為沿用已驗證的 v1.0.3。
+v1.0.5 強化 scheme-less IDN、TLD / filename 判斷、長尾標點 bounded-scan 行為，並修復多語系相鄰文字 regression；完整 Fixture v1.1 與 Chromium 驗收均已通過。
 
-- 最新 Acceptance Report：[`tests/acceptance/v1.0.4.md`](./tests/acceptance/v1.0.4.md)
+- 最新 Acceptance Report：[`tests/acceptance/v1.0.5.md`](./tests/acceptance/v1.0.5.md)
 - 歷史 Acceptance Reports：[`tests/acceptance/`](./tests/acceptance/)
 - Changelog：[`CHANGELOG.md`](./CHANGELOG.md)
 
 ### Regression Fixture
 
-Repo 根目錄的 [`index.html`](./index.html) 是 **Regression Fixture v1**。
+Repo 根目錄的 [`index.html`](./index.html) 是 **Regression Fixture v1.1**。
 
 Fixture 是獨立於 userscript release version 的固定測試規格。腳本修改後要拿新版腳本去接受 Fixture 驗證，而不是修改 Fixture 讓新版腳本通過。
 

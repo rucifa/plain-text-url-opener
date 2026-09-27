@@ -189,17 +189,17 @@ The goal is not to replace full-featured linkifiers. It is to make the “double
 
 ## Version and validation
 
-Current stable version: **v1.0.4**
+Current stable version: **v1.0.5**
 
-v1.0.4 is a publication-metadata release. URL parsing, DOM handling, and interaction behavior are inherited unchanged from the validated v1.0.3 implementation.
+v1.0.5 hardens scheme-less IDN handling, TLD / filename discrimination, bounded-scan behavior around long trailing punctuation, and restores multilingual adjacent-prose behavior. The complete Fixture v1.1 and Chromium acceptance suite pass.
 
-- Latest Acceptance Report: [`tests/acceptance/v1.0.4.md`](./tests/acceptance/v1.0.4.md)
+- Latest Acceptance Report: [`tests/acceptance/v1.0.5.md`](./tests/acceptance/v1.0.5.md)
 - Historical Acceptance Reports: [`tests/acceptance/`](./tests/acceptance/)
 - Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
 
 ### Regression Fixture
 
-The repository root [`index.html`](./index.html) is **Regression Fixture v1**.
+The repository root [`index.html`](./index.html) is **Regression Fixture v1.1**.
 
 The fixture is versioned independently from userscript releases. Script changes are validated against the fixture; the fixture is not rewritten merely to make a new script release pass.
 

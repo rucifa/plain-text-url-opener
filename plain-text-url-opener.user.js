@@ -2,7 +2,7 @@
 // @name         Plain Text URL Opener
 // @name:zh-TW   純文字網址雙擊開啟器
 // @namespace    https://github.com/rucifa/plain-text-url-opener
-// @version      1.0.4
+// @version      1.0.5
 // @description  Double-click plain-text HTTP(S) URLs to open them. Lightweight, no DOM linkification, no full-page scanning, no settings required.
 // @description:zh-TW 雙擊開啟網頁中的純文字 HTTP(S) 網址。輕量、不改寫正文 DOM、不進行背景全頁掃描，也不需要設定介面。
 // @match        http://*/*
@@ -117,6 +117,19 @@
         'finance','market','markets','academy','network','systems'
     ]);
 
+    /*
+     * Delegated country-code and internationalized TLD snapshots used only
+     * for scheme-less domain validation. Source: IANA Root Zone Database.
+     * Explicit http(s):// URLs remain independent of these allow-lists.
+     */
+    const COUNTRY_CODE_TLDS = new Set(
+        'ac ad ae af ag ai al am ao aq ar as at au aw ax az ba bb bd be bf bg bh bi bj bm bn bo br bs bt bv bw by bz ca cc cd cf cg ch ci ck cl cm cn co cr cu cv cw cx cy cz de dj dk dm do dz ec ee eg er es et eu fi fj fk fm fo fr ga gb gd ge gf gg gh gi gl gm gn gp gq gr gs gt gu gw gy hk hm hn hr ht hu id ie il im in io iq ir is it je jm jo jp ke kg kh ki km kn kp kr kw ky kz la lb lc li lk lr ls lt lu lv ly ma mc md me mg mh mk ml mm mn mo mp mq mr ms mt mu mv mw mx my mz na nc ne nf ng ni nl no np nr nu nz om pa pe pf pg ph pk pl pm pn pr ps pt pw py qa re ro rs ru rw sa sb sc sd se sg sh si sj sk sl sm sn so sr ss st su sv sx sy sz tc td tf tg th tj tk tl tm tn to tr tt tv tw tz ua ug uk us uy uz va vc ve vg vi vn vu wf ws ye yt za zm zw'.split(' ')
+    );
+
+    const IDN_TLDS = new Set(
+        'xn--11b4c3d xn--1ck2e1b xn--1qqw23a xn--2scrj9c xn--30rr7y xn--3bst00m xn--3ds443g xn--3e0b707e xn--3hcrj9c xn--3pxu8k xn--42c2d9a xn--45br5cyl xn--45brj9c xn--45q11c xn--4dbrk0ce xn--4gbrim xn--54b7fta0cc xn--55qw42g xn--55qx5d xn--5su34j936bgsg xn--5tzm5g xn--6frz82g xn--6qq986b3xl xn--80adxhks xn--80ao21a xn--80aqecdr1a xn--80asehdb xn--80aswg xn--8y0a063a xn--90a3ac xn--90ae xn--90ais xn--9dbq2a xn--9et52u xn--9krt00a xn--b4w605ferd xn--bck1b9a5dre4c xn--c1avg xn--c2br7g xn--cck2b3b xn--cckwcxetd xn--cg4bki xn--clchc0ea0b2g2a9gcd xn--czr694b xn--czrs0t xn--czru2d xn--d1acj3b xn--d1alf xn--e1a4c xn--eckvdtc9d xn--efvy88h xn--fct429k xn--fhbei xn--fiq228c5hs xn--fiq64b xn--fiqs8s xn--fiqz9s xn--fjq720a xn--flw351e xn--fpcrj9c3d xn--fzc2c9e2c xn--fzys8d69uvgm xn--g2xx48c xn--gckr3f0f xn--gecrj9c xn--gk3at1e xn--h2breg3eve xn--h2brj9c xn--h2brj9c8c xn--hxt814e xn--i1b6b1a6a2e xn--imr513n xn--io0a7i xn--j1aef xn--j1amh xn--j6w193g xn--jlq480n2rg xn--jvr189m xn--kcrx77d1x4a xn--kprw13d xn--kpry57d xn--kput3i xn--l1acc xn--lgbbat1ad8j xn--mgb9awbf xn--mgba3a3ejt xn--mgba3a4f16a xn--mgba7c0bbn0a xn--mgbaam7a8h xn--mgbab2bd xn--mgbah1a3hjkrd xn--mgbai9azgqp6j xn--mgbayh7gpa xn--mgbbh1a xn--mgbbh1a71e xn--mgbc0a9azcg xn--mgbca7dzdo xn--mgbcpq6gpa1a xn--mgberp4a5d4ar xn--mgbgu82a xn--mgbi4ecexp xn--mgbpl2fh xn--mgbt3dhd xn--mgbtx2b xn--mgbx4cd0ab xn--mix891f xn--mk1bu44c xn--mxtq1m xn--ngbc5azd xn--ngbe9e0a xn--ngbrx xn--node xn--nqv7f xn--nqv7fs00ema xn--nyqy26a xn--o3cw4h xn--ogbpf8fl xn--otu796d xn--p1acf xn--p1ai xn--pgbs0dh xn--pssy2u xn--q7ce6a xn--q9jyb4c xn--qcka1pmc xn--qxa6a xn--qxam xn--rhqv96g xn--rovu88b xn--rvc1e0am3e xn--s9brj9c xn--ses554g xn--t60b56a xn--tckwe xn--tiq49xqyj xn--unup4y xn--vermgensberater-ctb xn--vermgensberatung-pwb xn--vhquv xn--vuq861b xn--w4r85el8fhu5dnra xn--w4rs40l xn--wgbh1c xn--wgbl6a xn--xhq521b xn--xkc2al3hye2a xn--xkc2dl3a5ee0h xn--y9a3aq xn--yfro4i67o xn--ygbi2ammx xn--zfr164b'.split(' ')
+    );
+
     const CJK_RE =
         /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
 
@@ -155,6 +168,9 @@
     const URL_TOKEN_SEPARATOR_RE =
         /[\s<>"'`\u3000\uFF02\uFF07\uFF1C\uFF1E\uFF40]/u;
 
+    const SCAN_TRAILING_PUNCTUATION_RE =
+        /^[)\]}）］｝。，、；：！？!?;:,\."'”’」』】》〉〕]+$/u;
+
     /*
      * Bare-domain label count is capped.
      * Together with the hostname-length check below, this avoids pathological
@@ -187,7 +203,7 @@
         {
             priority: 2,
             kind: 'bare',
-            regex: /(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]{0,62})\.){1,126}(?:[A-Za-z]{2,63}|xn--[A-Za-z0-9-]{2,59})(?:[\/:?#][^\s<>"'`\u3000]*)?/giu
+            regex: /(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]{0,62})\.){1,126}[\p{L}\p{N}](?:[\p{L}\p{N}-]{0,62})(?:[\/:?#][^\s<>"'`\u3000]*)?/giu
         }
     ];
 
@@ -441,6 +457,20 @@
                 labelStart = authorityStart;
             }
         }
+        else if (
+            ['www', 'bare'].includes(kind)
+        ) {
+            authorityStart = 0;
+
+            const boundary = raw.search(/[/?#]/u);
+
+            authorityEnd =
+                boundary < 0
+                    ? raw.length
+                    : boundary;
+
+            labelStart = 0;
+        }
 
         let index = 0;
 
@@ -515,6 +545,67 @@
         return raw;
     }
 
+    function trimLikelyAdjacentNonLatinProse(
+        raw,
+        kind
+    ) {
+        if (!['bare', 'www'].includes(kind)) {
+            return raw;
+        }
+
+        /*
+         * First preserve every scheme-less hostname that already validates
+         * as a supported domain, including real Unicode / IDN hostnames.
+         */
+        if (isLikelySchemeLessDomain(raw, kind)) {
+            return raw;
+        }
+
+        const boundary = raw.search(/[/?#]/u);
+        const authorityEnd =
+            boundary < 0
+                ? raw.length
+                : boundary;
+
+        let index = 0;
+
+        while (index < authorityEnd) {
+            const codePoint = raw.codePointAt(index);
+            const char = String.fromCodePoint(codePoint);
+
+            /*
+             * Preserve the long-standing multilingual-adjacency behavior:
+             *   example.comРусский  -> example.com
+             *   example.comΕλληνικά -> example.com
+             *
+             * Latin-script adjacency remains intentionally conservative,
+             * e.g. example.comFrançais is not shortened automatically.
+             * CJK adjacency is handled by trimLikelyAdjacentCJKProse().
+             */
+            if (
+                codePoint > 0x7F &&
+                /\p{L}/u.test(char) &&
+                !/\p{Script=Latin}/u.test(char)
+            ) {
+                const prefix = raw.slice(0, index);
+
+                if (
+                    /[A-Za-z0-9]$/.test(prefix) &&
+                    isLikelySchemeLessDomain(
+                        prefix,
+                        kind
+                    )
+                ) {
+                    return prefix;
+                }
+            }
+
+            index += char.length;
+        }
+
+        return raw;
+    }
+
     const repairMissingH = value =>
         value
             .replace(/^ttp:\/\//i, 'http://')
@@ -531,21 +622,36 @@
             .replace(/:\d{1,5}$/, '');
     }
 
-    function isLikelyBareDomain(value) {
+    function isLikelySchemeLessDomain(value, kind) {
         const host = hostWithoutPort(value);
+
+        if (!host) {
+            return false;
+        }
+
+        let url;
+
+        try {
+            url = new URL('https://' + host);
+        }
+        catch {
+            return false;
+        }
+
+        const asciiHost = url.hostname.toLowerCase();
 
         /*
          * DNS hostnames are limited to 253 visible characters
          * (excluding a possible trailing root dot).
          */
         if (
-            !host ||
-            host.length > 253
+            !asciiHost ||
+            asciiHost.length > 253
         ) {
             return false;
         }
 
-        const labels = host.split('.');
+        const labels = asciiHost.split('.');
 
         if (
             labels.length < 2 ||
@@ -564,17 +670,25 @@
             return false;
         }
 
-        const tld = labels.at(-1).toLowerCase();
+        const tld = labels.at(-1);
 
-        if (tld.startsWith('xn--')) {
+        if (
+            COMMON_TLDS.has(tld) ||
+            COUNTRY_CODE_TLDS.has(tld) ||
+            IDN_TLDS.has(tld)
+        ) {
             return true;
         }
 
-        if (/^[a-z]{2}$/i.test(tld)) {
-            return true;
-        }
-
-        return COMMON_TLDS.has(tld);
+        /*
+         * A leading www. is a strong URL signal. Preserve the historical
+         * broad behavior for ASCII TLDs of length >= 3, while rejecting
+         * arbitrary two-letter suffixes such as .js or .ts.
+         */
+        return (
+            kind === 'www' &&
+            /^[a-z]{3,63}$/i.test(tld)
+        );
     }
 
     function describeURL(url) {
@@ -590,6 +704,11 @@
         );
 
         value = trimLikelyAdjacentCJKProse(
+            value,
+            kind
+        );
+
+        value = trimLikelyAdjacentNonLatinProse(
             value,
             kind
         );
@@ -662,6 +781,10 @@
         // ------------------------------------------------------------
 
         if (/^www\d*\./i.test(value)) {
+            if (!isLikelySchemeLessDomain(value, 'www')) {
+                return null;
+            }
+
             value = 'https://' + value;
         }
 
@@ -670,7 +793,7 @@
         // ------------------------------------------------------------
 
         else if (kind === 'bare') {
-            if (!isLikelyBareDomain(value)) {
+            if (!isLikelySchemeLessDomain(value, 'bare')) {
                 return null;
             }
 
@@ -1011,6 +1134,11 @@
                     spec.kind
                 );
 
+                trimmed = trimLikelyAdjacentNonLatinProse(
+                    trimmed,
+                    spec.kind
+                );
+
                 if (!trimmed) {
                     continue;
                 }
@@ -1032,8 +1160,11 @@
                 }
 
                 if (
-                    spec.kind === 'bare' &&
-                    !isLikelyBareDomain(trimmed)
+                    ['bare', 'www'].includes(spec.kind) &&
+                    !isLikelySchemeLessDomain(
+                        trimmed,
+                        spec.kind
+                    )
                 ) {
                     continue;
                 }
@@ -1143,13 +1274,27 @@
                 windowed.text.slice(0, localStart)
             );
 
+        const rightRemainder =
+            windowed.text.slice(localEnd);
+
+        const rightBoundaryChar =
+            windowEnd < fullText.length
+                ? fullText[windowEnd]
+                : '';
+
+        const rightBoundaryText =
+            rightRemainder + rightBoundaryChar;
+
         const rightClipped =
             windowEnd < fullText.length &&
             !URL_TOKEN_SEPARATOR_RE.test(
-                fullText[windowEnd]
+                rightBoundaryChar
             ) &&
             !URL_TOKEN_SEPARATOR_RE.test(
-                windowed.text.slice(localEnd)
+                rightRemainder
+            ) &&
+            !SCAN_TRAILING_PUNCTUATION_RE.test(
+                rightBoundaryText
             );
 
         return leftClipped || rightClipped;
@@ -2304,12 +2449,12 @@
     cleanupLegacyUI();
 
     window[GLOBAL_KEY] = {
-        version: '1.0.4',
+        version: '1.0.5',
         controller,
         cleanup
     };
 
     log(
-        'Plain Text URL Opener v1.0.4 Stable loaded'
+        'Plain Text URL Opener v1.0.5 Stable loaded'
     );
 })();

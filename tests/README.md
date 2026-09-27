@@ -6,7 +6,7 @@ This directory preserves release-validation evidence for Plain Text URL Opener.
 
 ### Regression Fixture
 
-The canonical browser-facing test specification is the repository root `index.html` (Regression Fixture v1).
+The canonical browser-facing test specification is the repository root `index.html` (Regression Fixture v1.1).
 
 The fixture defines expected behavior. It is intentionally independent from userscript release versions and must not be edited merely to make a current implementation pass.
 
@@ -23,6 +23,6 @@ A future regression should therefore be handled as follows:
 
 ## Current fixture scope
 
-Fixture v1 covers browser-facing cases including HTTP(S), bare/www domains, Unicode/IDN, multilingual adjacency, security boundaries, malformed tokens, punctuation, existing links, ignored editable/form controls, multiple URLs in one TextNode, long TextNodes, cross-TextNode non-reconstruction, and historical regressions.
+Fixture v1.1 covers browser-facing cases including HTTP(S), bare/www domains, Unicode/IDN, multilingual adjacency, security boundaries, malformed tokens, punctuation, existing links, ignored editable/form controls, multiple URLs in one TextNode, long TextNodes, cross-TextNode non-reconstruction, and historical regressions.
 
 Parser fuzzing, lifecycle/reinjection, popup safety, opener isolation, and detailed performance measurements remain separate automated acceptance layers rather than browser-fixture content.
