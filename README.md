@@ -17,9 +17,17 @@ A lightweight userscript for opening plain-text HTTP(S) URLs by double-clicking 
 - Defanged URLs are detected but blocked from automatic opening
 - Regression behavior is locked by a fixed browser fixture
 
+## Install
+
+A compatible userscript manager is required.
+
+**Direct install:** [Install `plain-text-url-opener.user.js`](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)
+
+If your userscript manager does not automatically intercept the Raw URL, import that URL manually in the manager.
+
 ## Usage
 
-Install the userscript in a compatible userscript manager. Then double-click a supported plain-text URL on a web page.
+After installation, double-click a supported plain-text URL on a web page.
 
 Default interaction:
 
@@ -91,4 +99,8 @@ See [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## License
 
-No license has been selected yet. Until a license is explicitly added, the repository should not be assumed to grant reuse, modification, or redistribution rights beyond those provided by applicable law and platform terms.
+Plain Text URL Opener is licensed under the **MIT License with the Commons Clause License Condition v1.0**. You may use, modify, and redistribute the software, but you may not sell the software as defined by the Commons Clause.
+
+See [`LICENSE`](./LICENSE) for the complete terms.
+
+Because of the commercial-sale restriction, this project is source-available rather than OSI-defined open source.
