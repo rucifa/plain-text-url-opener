@@ -37,11 +37,13 @@
 
 ## 目前 Stable 版本
 
-**v1.0.3 Stable**
+**v1.0.4 Stable**
+
+v1.0.4 是「發布 metadata 整理版」。實際執行行為與 v1.0.3 相同；本版只新增永久 namespace、授權 metadata、support URL，並同步版本識別字串。
 
 原始碼：[`plain-text-url-opener.user.js`](./plain-text-url-opener.user.js)
 
-最新驗收報告：[`tests/acceptance/v1.0.3.md`](./tests/acceptance/v1.0.3.md)
+最新驗收報告：[`tests/acceptance/v1.0.4.md`](./tests/acceptance/v1.0.4.md)
 
 ## Regression Fixture
 
@@ -49,9 +51,9 @@ Repo 根目錄的 [`index.html`](./index.html) 是 **Regression Fixture v1**。
 
 Fixture 是固定的測試規格：它獨立定義 testcase 的輸入與預期結果，不綁定任何特定 userscript 版本。每次修改腳本，都應拿腳本去接受 Fixture 驗證；不能因為腳本目前怎麼執行，就回頭修改 Fixture 讓它通過。
 
-GitHub Pages 若設定為從 `main / (root)` 發布，Fixture 預計可由下列網址存取：
+GitHub Pages 已設定由 `main / (root)` 發布。
 
-`https://rucifa.github.io/plain-text-url-opener/`
+**線上 Fixture：** https://rucifa.github.io/plain-text-url-opener/
 
 ## 刻意保留的功能邊界
 
