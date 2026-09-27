@@ -1,8 +1,30 @@
 # Changelog
 
-All notable behavior changes to Plain Text URL Opener are documented here.
+All notable release changes to Plain Text URL Opener are documented here.
 
 The Regression Fixture has its own version line and should not be changed merely to make a userscript release pass.
+
+## [1.0.4] - 2026-09-27
+
+### Publication metadata
+
+- Changed `@namespace` from `plain-text-url-opener` to `https://github.com/rucifa/plain-text-url-opener` for a stable, project-specific identity before public distribution.
+- Added `@license MIT with Commons Clause License Condition v1.0`.
+- Added `@supportURL https://github.com/rucifa/plain-text-url-opener/issues`.
+- Updated userscript metadata version, runtime version, and load log from `1.0.3` to `1.0.4`.
+
+### Behavior
+
+- No parser, URL-matching, DOM, UI, navigation, or event-handling behavior changed.
+- Regression Fixture v1 is unchanged.
+
+### Validation
+
+- Exact v1.0.3 → v1.0.4 diff contains only publication metadata and version-identification changes.
+- JavaScript syntax check: PASS.
+- Static architecture constraints remain unchanged: no `MutationObserver`, `setInterval`, `requestAnimationFrame`, `eval`, `new Function`, `innerHTML`, or GM API dependency.
+- GitHub artifact matches the validated local v1.0.4 candidate by Git blob SHA: `5fe03abf8b2fd5b05c674ba34b324e921ea9a317`.
+- v1.0.4 SHA-256: `4d85ccb106c13701427bed9ed05d6fcb32ff812a9f22fa62484757db8952cbe3`.
 
 ## [1.0.3] - 2026-09-27
 
