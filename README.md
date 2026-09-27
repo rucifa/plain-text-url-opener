@@ -37,11 +37,13 @@ Default interaction:
 
 ## Current stable version
 
-**v1.0.3 Stable**
+**v1.0.4 Stable**
+
+v1.0.4 is a publication-metadata release. Runtime behavior is unchanged from v1.0.3; the release adds a permanent namespace, license metadata, support URL, and synchronized version identifiers.
 
 Source: [`plain-text-url-opener.user.js`](./plain-text-url-opener.user.js)
 
-Latest acceptance report: [`tests/acceptance/v1.0.3.md`](./tests/acceptance/v1.0.3.md)
+Latest acceptance report: [`tests/acceptance/v1.0.4.md`](./tests/acceptance/v1.0.4.md)
 
 ## Regression fixture
 
@@ -49,9 +51,9 @@ The repository root [`index.html`](./index.html) is **Regression Fixture v1**.
 
 The fixture is a fixed test specification: it defines inputs and expected results independently of any particular userscript version. Script changes must be tested against the fixture; the fixture is not automatically changed to match the current implementation.
 
-When GitHub Pages is enabled from `main / (root)`, the fixture is intended to be available at:
+GitHub Pages is enabled from `main / (root)`.
 
-`https://rucifa.github.io/plain-text-url-opener/`
+**Live fixture:** https://rucifa.github.io/plain-text-url-opener/
 
 ## Intentional limitations
 
