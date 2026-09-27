@@ -103,13 +103,37 @@ Text Link 的歷史 testcase 也是本專案建立 regression 思維時的重要
 
 ## 安裝
 
-需要相容的 userscript 管理器。
+Plain Text URL Opener 是一個 **userscript（使用者腳本）**。第一次使用時，需要先在瀏覽器安裝 userscript 管理器，再安裝本腳本。
 
-### 直接安裝
+### 1. 安裝 userscript 管理器
+
+你可以選擇常見的 userscript 管理器，例如：
+
+| Userscript 管理器 | 說明 | 官方連結 |
+|---|---|---|
+| **Violentmonkey（暴力猴）** | 常見的開源 userscript 管理器 | https://violentmonkey.github.io/ |
+| **Tampermonkey** | 常見的跨瀏覽器 userscript 管理器；中文社群有時俗稱「油猴」 | https://www.tampermonkey.net/ |
+| **Greasemonkey** | Firefox 上歷史悠久的 userscript 管理器 | https://addons.mozilla.org/firefox/addon/greasemonkey/ |
+
+> Tampermonkey 與 Greasemonkey 是不同的專案；中文社群雖常把 Tampermonkey 稱為「油猴」，但兩者不要混為同一個擴充套件。
+
+Plain Text URL Opener 使用 `@grant none`，不依賴特定管理器提供的 GM API。不過目前專案尚未對所有「瀏覽器 × userscript 管理器」組合進行完整相容性驗證，因此上表列的是常見選擇，不代表所有組合都已完整測試。
+
+### 2. 安裝 Plain Text URL Opener
+
+安裝 userscript 管理器後，開啟下面的腳本：
 
 **[安裝 `plain-text-url-opener.user.js`](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)**
 
-如果 userscript 管理器沒有自動攔截 Raw URL，請在管理器中手動匯入該網址。
+正常情況下，userscript 管理器會自動開啟安裝畫面。如果沒有自動攔截 Raw URL，也可以把上面的網址手動匯入管理器。
+
+### GitHub Releases
+
+正式 Stable 版本會在 [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases) 以同一個檔名提供：
+
+`plain-text-url-opener.user.js`
+
+如果你希望固定使用某個特定版本，建議從對應的 Release 下載這個 `.user.js` 檔案。GitHub 自動產生的 `Source code (zip)` / `Source code (tar.gz)` 主要用於原始碼封存，不是一般使用者的主要安裝方式。
 
 ### 原始碼
 
