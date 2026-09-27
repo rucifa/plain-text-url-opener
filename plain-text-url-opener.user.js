@@ -1,0 +1,2313 @@
+// ==UserScript==
+// @name         Plain Text URL Opener
+// @name:zh-TW   純文字網址雙擊開啟器
+// @namespace    plain-text-url-opener
+// @version      1.0.3
+// @description  Double-click plain-text HTTP(S) URLs to open them. Lightweight, no DOM linkification, no full-page scanning, no settings required.
+// @description:zh-TW 雙擊開啟網頁中的純文字 HTTP(S) 網址。輕量、不改寫正文 DOM、不進行背景全頁掃描，也不需要設定介面。
+// @match        http://*/*
+// @match        https://*/*
+// @grant        none
+// @run-at       document-idle
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    const GLOBAL_KEY = '__PLAIN_TEXT_URL_OPENER__';
+    const LEGACY_GLOBAL_KEYS = ['__TEXT_LINK_UNIVERSAL_LIGHTWEIGHT__'];
+
+    const seenInstances = new Set();
+
+    for (const key of [GLOBAL_KEY, ...LEGACY_GLOBAL_KEYS]) {
+        const previous = window[key];
+
+        if (
+            previous &&
+            typeof previous === 'object' &&
+            !seenInstances.has(previous)
+        ) {
+            seenInstances.add(previous);
+
+            try {
+                previous.controller?.abort();
+                previous.cleanup?.();
+            }
+            catch {
+                // A broken previous instance must not block the new one.
+            }
+        }
+
+        try {
+            delete window[key];
+        }
+        catch {
+            // Ignore cleanup failure.
+        }
+    }
+
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    const CONFIG = {
+        openInNewTab: true,
+        shiftReversesOpenMode: true,
+        altSelectOnly: true,
+        enableRelativePaths: false,
+
+        hoverUnderline: true,
+        hoverStatus: true,
+        hoverDelayMs: 60,
+
+        maxWholeNodeChars: 8192,
+        scanRadiusChars: 4096,
+
+        feedbackMs: 800,
+        debug: false,
+    };
+
+    const HIGHLIGHT = Object.freeze({
+        hover: 'plain-text-url-opener-hover',
+        warning: 'plain-text-url-opener-warning',
+        success: 'plain-text-url-opener-success',
+    });
+
+    const LEGACY_IDS = Object.freeze([
+        'text-link-universal-status',
+        'text-link-universal-toast',
+        'text-link-universal-panel',
+        'text-link-universal-style',
+        'text-link-universal-ui-host',
+        'text-link-universal-highlight-style',
+        'plain-text-url-opener-ui-host',
+        'plain-text-url-opener-highlight-style',
+    ]);
+
+    const IGNORE_SELECTOR = [
+        'a[href]',
+        'input',
+        'textarea',
+        'select',
+        'option',
+        'button',
+        'script',
+        'style',
+        'noscript',
+        'iframe',
+        'object',
+        'embed',
+        '[role="textbox"]'
+    ].join(',');
+
+    /*
+     * Bare domains intentionally use a conservative TLD list.
+     * Explicit http(s):// URLs and www.* URLs do not depend on this list.
+     */
+    const COMMON_TLDS = new Set([
+        'com','org','net','edu','gov','mil','int',
+        'io','ai','app','dev','co','me','tv','xyz',
+        'site','online','store','shop','tech','cloud',
+        'info','biz','name','pro','mobi','travel',
+        'blog','news','live','world','link','website',
+        'space','digital','agency','solutions','services',
+        'company','email','social','media','design',
+        'studio','today','life','work','games','game',
+        'finance','market','markets','academy','network','systems'
+    ]);
+
+    const CJK_RE =
+        /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
+
+
+    /*
+     * Schemes that this userscript intentionally does not handle.
+     * A nested http(s) substring inside one of these tokens must not be
+     * rescued as an independent URL.
+     */
+    const UNSUPPORTED_OUTER_SCHEMES = new Set([
+        'about',
+        'blob',
+        'chrome',
+        'chrome-extension',
+        'data',
+        'file',
+        'ftp',
+        'javascript',
+        'mailto'
+    ]);
+
+    const TRIM_PAIRS = new Map([
+        [')', '('],
+        [']', '['],
+        ['}', '{'],
+        ['）', '（'],
+        ['］', '［'],
+        ['｝', '｛']
+    ]);
+
+    const TRIM_DELIMITERS = new Set([
+        ...TRIM_PAIRS.keys(),
+        ...TRIM_PAIRS.values()
+    ]);
+
+    const URL_TOKEN_SEPARATOR_RE =
+        /[\s<>"'`\u3000\uFF02\uFF07\uFF1C\uFF1E\uFF40]/u;
+
+    /*
+     * Bare-domain label count is capped.
+     * Together with the hostname-length check below, this avoids pathological
+     * backtracking on strings such as a.a.a.a.a.a.... while remaining well
+     * above realistic DNS hostnames.
+     *
+     * 126 repeated labels + final TLD = at most 127 labels total.
+     */
+    const URL_PATTERNS = [
+        {
+            priority: 7,
+            kind: 'scheme',
+            regex: /https?:\/\/[^\s<>"'`\u3000]+/giu
+        },
+        {
+            priority: 7,
+            kind: 'missing-scheme',
+            regex: /ttps?:\/\/[^\s<>"'`\u3000]+/giu
+        },
+        {
+            priority: 7,
+            kind: 'defanged',
+            regex: /h(?:xx|\*\*|\+\+)p(?:s)?:\/\/[^\s<>"'`\u3000]+/giu
+        },
+        {
+            priority: 4,
+            kind: 'www',
+            regex: /www\d*\.[^\s<>"'`\u3000]+/giu
+        },
+        {
+            priority: 2,
+            kind: 'bare',
+            regex: /(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]{0,62})\.){1,126}(?:[A-Za-z]{2,63}|xn--[A-Za-z0-9-]{2,59})(?:[\/:?#][^\s<>"'`\u3000]*)?/giu
+        }
+    ];
+
+    if (CONFIG.enableRelativePaths) {
+        URL_PATTERNS.splice(
+            3,
+            0,
+            {
+                priority: 5,
+                kind: 'relative',
+                regex: /\.\.?\/[A-Za-z0-9._~!$&'()*+,;=:@%\/?#-]+/gu
+            }
+        );
+    }
+
+    const nodeCache = new WeakMap();
+
+    let hoverTimer = 0;
+    let feedbackTimer = 0;
+    let pendingPointerEvent = null;
+    let hoverState = null;
+    let uiHost = null;
+    let uiPanel = null;
+    let panelVisible = false;
+
+    // ================================================================
+    // General helpers
+    // ================================================================
+
+    const log = (...args) => {
+        if (CONFIG.debug) {
+            console.log('[Plain Text URL Opener]', ...args);
+        }
+    };
+
+    function addEvent(target, type, listener, options = {}) {
+        target.addEventListener(type, listener, {
+            ...options,
+            signal
+        });
+    }
+
+    // ================================================================
+    // Full-width ASCII → ASCII
+    // 1 character → 1 character, so DOM offsets remain identical.
+    // ================================================================
+
+    function normalizeWidth(text) {
+        let result = '';
+
+        for (const ch of text) {
+            const code = ch.charCodeAt(0);
+
+            if (code >= 0xFF01 && code <= 0xFF5E) {
+                result += String.fromCharCode(code - 0xFEE0);
+            }
+            else if (code === 0x3000) {
+                result += ' ';
+            }
+            else if (code === 0x301C || code === 0xFFE3) {
+                result += '~';
+            }
+            else {
+                result += ch;
+            }
+        }
+
+        return result;
+    }
+
+    function isIgnoredElement(element) {
+        return (
+            element instanceof Element &&
+            (
+                element.isContentEditable ||
+                !!element.closest(IGNORE_SELECTOR)
+            )
+        );
+    }
+
+    // ================================================================
+    // Pointer position → Text Node
+    // ================================================================
+
+    function getCaretFromPoint(x, y) {
+        if (typeof document.caretPositionFromPoint === 'function') {
+            const pos = document.caretPositionFromPoint(x, y);
+
+            if (pos) {
+                return {
+                    node: pos.offsetNode,
+                    offset: pos.offset
+                };
+            }
+        }
+
+        if (typeof document.caretRangeFromPoint === 'function') {
+            const range = document.caretRangeFromPoint(x, y);
+
+            if (range) {
+                return {
+                    node: range.startContainer,
+                    offset: range.startOffset
+                };
+            }
+        }
+
+        return null;
+    }
+
+    function resolveTextPoint(node, offset) {
+        if (!node) {
+            return null;
+        }
+
+        if (node.nodeType === Node.TEXT_NODE) {
+            return {
+                node,
+                offset: Math.max(0, Math.min(offset, node.nodeValue.length))
+            };
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return null;
+        }
+
+        const child =
+            node.childNodes[offset] ||
+            node.childNodes[Math.max(0, offset - 1)];
+
+        if (!child) {
+            return null;
+        }
+
+        if (child.nodeType === Node.TEXT_NODE) {
+            return {
+                node: child,
+                offset: 0
+            };
+        }
+
+        const walker = document.createTreeWalker(
+            child,
+            NodeFilter.SHOW_TEXT
+        );
+
+        const textNode = walker.nextNode();
+
+        return textNode
+            ? {
+                node: textNode,
+                offset: 0
+            }
+            : null;
+    }
+
+    // ================================================================
+    // URL parser
+    // ================================================================
+
+    function quickLooksLikeURL(text) {
+        return (
+            text.includes('.') ||
+            text.includes('/') ||
+            text.includes(':') ||
+            /(?:www|ttp|hxxp|h\*\*p|h\+\+p)/i.test(text)
+        );
+    }
+
+    function trimCandidate(value) {
+        let text = value
+            .replace(/^[\s("'“‘「『【《〈〔［｛]+/u, '')
+            .replace(/[。，、；：！？!?;:,]+$/u, '');
+
+        const counts = new Map();
+
+        for (const ch of text) {
+            if (TRIM_DELIMITERS.has(ch)) {
+                counts.set(
+                    ch,
+                    (counts.get(ch) || 0) + 1
+                );
+            }
+        }
+
+        let end = text.length;
+
+        while (end > 0) {
+            const close = text[end - 1];
+            const open = TRIM_PAIRS.get(close);
+
+            if (
+                !open ||
+                (counts.get(close) || 0) <=
+                    (counts.get(open) || 0)
+            ) {
+                break;
+            }
+
+            counts.set(
+                close,
+                counts.get(close) - 1
+            );
+
+            end--;
+        }
+
+        if (end !== text.length) {
+            text = text.slice(0, end);
+        }
+
+        return text
+            .replace(/["'”’」』】》〉〕]+$/u, '')
+            .replace(/[。，、；：！？!?;:,]+$/u, '')
+            .replace(/\.+$/u, '');
+    }
+
+    function trimLikelyAdjacentCJKProse(raw, kind) {
+        if (
+            ![
+                'scheme',
+                'missing-scheme',
+                'www',
+                'bare'
+            ].includes(kind)
+        ) {
+            return raw;
+        }
+
+        let authorityStart = -1;
+        let authorityEnd = -1;
+        let labelStart = -1;
+        let labelHasCJK = false;
+
+        if (
+            ['scheme', 'missing-scheme'].includes(kind)
+        ) {
+            const marker = raw.indexOf('://');
+
+            if (marker >= 0) {
+                authorityStart = marker + 3;
+
+                const tail = raw.slice(authorityStart);
+                const boundary = tail.search(/[/?#]/u);
+
+                authorityEnd =
+                    boundary < 0
+                        ? raw.length
+                        : authorityStart + boundary;
+
+                labelStart = authorityStart;
+            }
+        }
+
+        let index = 0;
+
+        while (index < raw.length) {
+            const codePoint = raw.codePointAt(index);
+            const char = String.fromCodePoint(codePoint);
+            const inAuthority =
+                authorityStart >= 0 &&
+                index >= authorityStart &&
+                index < authorityEnd;
+
+            if (inAuthority) {
+                if (char === '.' || char === '@') {
+                    labelStart = index + char.length;
+                    labelHasCJK = false;
+                    index += char.length;
+                    continue;
+                }
+
+                if (CJK_RE.test(char)) {
+                    /*
+                     * Preserve CJK when it starts an explicit hostname label,
+                     * e.g. https://www.例え.jp/ or https://example.みんな/.
+                     * Later CJK in that same label is preserved as well.
+                     *
+                     * Keep the long-standing prose rule for a mixed ASCII+CJK
+                     * label such as https://example.com中文: it still ends at
+                     * .com rather than silently becoming a different IDN host.
+                     */
+                    if (
+                        index === labelStart ||
+                        labelHasCJK
+                    ) {
+                        labelHasCJK = true;
+                        index += char.length;
+                        continue;
+                    }
+                }
+            }
+
+            if (CJK_RE.test(char)) {
+                const prefix = raw.slice(0, index);
+                const previous = prefix.at(-1);
+
+                /*
+                 * Preserve obvious Unicode URL structures such as:
+                 * /wiki/臺灣
+                 * ?q=台灣
+                 *
+                 * But treat:
+                 * example.com中文
+                 * example.com:8080中文
+                 * as URL + adjacent prose.
+                 */
+                if (
+                    !previous ||
+                    !/[A-Za-z0-9_.-]/.test(previous)
+                ) {
+                    return raw;
+                }
+
+                if (!/(?:\/|\.|=|&|#|\?)/.test(prefix)) {
+                    return raw;
+                }
+
+                return raw.slice(0, index);
+            }
+
+            index += char.length;
+        }
+
+        return raw;
+    }
+
+    const repairMissingH = value =>
+        value
+            .replace(/^ttp:\/\//i, 'http://')
+            .replace(/^ttps:\/\//i, 'https://');
+
+    const restoreDefangedURL = value =>
+        value
+            .replace(/^h(?:xx|\*\*|\+\+)p:\/\//i, 'http://')
+            .replace(/^h(?:xx|\*\*|\+\+)ps:\/\//i, 'https://');
+
+    function hostWithoutPort(value) {
+        return value
+            .split(/[\/?#]/, 1)[0]
+            .replace(/:\d{1,5}$/, '');
+    }
+
+    function isLikelyBareDomain(value) {
+        const host = hostWithoutPort(value);
+
+        /*
+         * DNS hostnames are limited to 253 visible characters
+         * (excluding a possible trailing root dot).
+         */
+        if (
+            !host ||
+            host.length > 253
+        ) {
+            return false;
+        }
+
+        const labels = host.split('.');
+
+        if (
+            labels.length < 2 ||
+            labels.length > 127
+        ) {
+            return false;
+        }
+
+        if (
+            labels.some(
+                label =>
+                    !label ||
+                    label.length > 63
+            )
+        ) {
+            return false;
+        }
+
+        const tld = labels.at(-1).toLowerCase();
+
+        if (tld.startsWith('xn--')) {
+            return true;
+        }
+
+        if (/^[a-z]{2}$/i.test(tld)) {
+            return true;
+        }
+
+        return COMMON_TLDS.has(tld);
+    }
+
+    function describeURL(url) {
+        return {
+            idn: url.hostname.includes('xn--'),
+            userInfo: Boolean(url.username || url.password)
+        };
+    }
+
+    function normalizeURL(raw, kind) {
+        let value = trimCandidate(
+            normalizeWidth(raw.trim())
+        );
+
+        value = trimLikelyAdjacentCJKProse(
+            value,
+            kind
+        );
+
+        if (!value) {
+            return null;
+        }
+
+        // ------------------------------------------------------------
+        // Defanged URL
+        // ------------------------------------------------------------
+
+        if (kind === 'defanged') {
+            try {
+                const url = new URL(
+                    restoreDefangedURL(value)
+                );
+
+                if (!['http:', 'https:'].includes(url.protocol)) {
+                    return null;
+                }
+
+                return {
+                    blocked: true,
+                    reason: 'defanged',
+                    original: value,
+                    url: url.href,
+                    ...describeURL(url)
+                };
+            }
+            catch {
+                return null;
+            }
+        }
+
+        value = repairMissingH(value);
+
+        // ------------------------------------------------------------
+        // Relative paths
+        // ------------------------------------------------------------
+
+        if (
+            CONFIG.enableRelativePaths &&
+            (
+                value.startsWith('./') ||
+                value.startsWith('../')
+            )
+        ) {
+            try {
+                const url = new URL(
+                    value,
+                    document.baseURI
+                );
+
+                return {
+                    blocked: false,
+                    reason: null,
+                    original: value,
+                    url: url.href,
+                    ...describeURL(url)
+                };
+            }
+            catch {
+                return null;
+            }
+        }
+
+        // ------------------------------------------------------------
+        // www.example.com
+        // ------------------------------------------------------------
+
+        if (/^www\d*\./i.test(value)) {
+            value = 'https://' + value;
+        }
+
+        // ------------------------------------------------------------
+        // Bare domain
+        // ------------------------------------------------------------
+
+        else if (kind === 'bare') {
+            if (!isLikelyBareDomain(value)) {
+                return null;
+            }
+
+            value = 'https://' + value;
+        }
+
+        try {
+            const url = new URL(value);
+
+            if (!['http:', 'https:'].includes(url.protocol)) {
+                return null;
+            }
+
+            const description = describeURL(url);
+
+            /*
+             * Scheme-less User Info is too ambiguous and too easy to
+             * confuse with e-mail / identifier-like text.
+             *
+             * Reject:
+             *   www.example.com@evil.org
+             *   example.com:80@evil.org
+             *
+             * Still allow explicit:
+             *   https://example.com@evil.org/
+             * and show a warning for it.
+             */
+            if (
+                ['bare', 'www'].includes(kind) &&
+                description.userInfo
+            ) {
+                return null;
+            }
+
+            return {
+                blocked: false,
+                reason: null,
+                original: raw,
+                url: url.href,
+                ...description
+            };
+        }
+        catch {
+            return null;
+        }
+    }
+
+    function hasSchemeLikeTokenPrefix(
+        text,
+        start
+    ) {
+        const marker = text.lastIndexOf(
+            '://',
+            start
+        );
+
+        if (marker < 1) {
+            return false;
+        }
+
+        const between = text.slice(
+            marker + 3,
+            start
+        );
+
+        if (/[\s<>"'`\u3000]/u.test(between)) {
+            return false;
+        }
+
+        let schemeStart = marker - 1;
+
+        while (
+            schemeStart >= 0 &&
+            /[A-Za-z0-9+.-]/.test(text[schemeStart])
+        ) {
+            schemeStart--;
+        }
+
+        const scheme = text.slice(
+            schemeStart + 1,
+            marker
+        );
+
+        return /^[A-Za-z][A-Za-z0-9+.-]*$/.test(scheme);
+    }
+
+    function hasUnsupportedOuterSchemePrefix(
+        text,
+        start
+    ) {
+        if (start <= 0) {
+            return false;
+        }
+
+        let tokenStart = start - 1;
+
+        while (
+            tokenStart >= 0 &&
+            !URL_TOKEN_SEPARATOR_RE.test(text[tokenStart])
+        ) {
+            tokenStart--;
+        }
+
+        const prefix = text.slice(
+            tokenStart + 1,
+            start
+        );
+
+        const match = prefix.match(
+            /^([A-Za-z][A-Za-z0-9+.-]*):/u
+        );
+
+        return Boolean(
+            match &&
+            UNSUPPORTED_OUTER_SCHEMES.has(
+                match[1].toLowerCase()
+            )
+        );
+    }
+
+    function hasInvalidDomainBoundary(
+        text,
+        start,
+        end,
+        kind,
+        hasSchemeMarker
+    ) {
+        const left =
+            start > 0
+                ? text[start - 1]
+                : '';
+
+        const left2 =
+            start > 1
+                ? text[start - 2]
+                : '';
+
+        const right =
+            end < text.length
+                ? text[end]
+                : '';
+
+        const right2 =
+            end + 1 < text.length
+                ? text[end + 1]
+                : '';
+
+        /*
+         * Avoid domains embedded inside e-mail / identifier-like text.
+         */
+        if (
+            /[@_]/.test(left) ||
+            /[@_-]/.test(right)
+        ) {
+            return true;
+        }
+
+        /*
+         * Prevent a bounded bare-domain match from starting or ending
+         * inside a larger malformed ASCII hostname-like token.
+         *
+         * Keep the existing bare-domain punctuation behavior, e.g.:
+         *   -example.com
+         */
+        if (
+            kind === 'bare' &&
+            (
+                /[A-Za-z0-9]/.test(left) ||
+                (
+                    (left === '-' || left === '.') &&
+                    /[A-Za-z0-9-]/.test(left2)
+                )
+            )
+        ) {
+            return true;
+        }
+
+        if (
+            /[A-Za-z0-9]/.test(right) ||
+            (
+                right === '.' &&
+                /[A-Za-z0-9-]/.test(right2)
+            )
+        ) {
+            return true;
+        }
+
+        /*
+         * Do not rescue a later bare/www fragment from inside the same
+         * non-whitespace scheme-like token after an earlier parse fails.
+         *
+         * Example:
+         *   https://trusted.com%40evil.org
+         * must not fall back to:
+         *   https://40evil.org/
+         */
+        if (
+            hasSchemeMarker &&
+            hasSchemeLikeTokenPrefix(text, start)
+        ) {
+            return true;
+        }
+
+        /*
+         * Do not rescue a bare/www candidate from inside another
+         * scheme-like string such as:
+         *
+         *   abchttps://example.com
+         *   ftp://example.com
+         *
+         * The explicit HTTP(S) candidate is handled separately.
+         */
+        if (left === '/') {
+            return true;
+        }
+
+        if (kind === 'www') {
+            /* abcwww.example.com */
+            if (/[A-Za-z0-9_-]/.test(left)) {
+                return true;
+            }
+
+            /*
+             * foo.www.example.com
+             * Prefer the complete hostname rather than a nested www candidate.
+             */
+            if (
+                left === '.' &&
+                /[A-Za-z0-9-]/.test(left2)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function hasInvalidSchemeLeftBoundary(
+        text,
+        start
+    ) {
+        if (start <= 0) {
+            return false;
+        }
+
+        /*
+         * Reject embedded ASCII identifiers such as:
+         *   abchttps://example.com
+         *   foohttp://example.com
+         *
+         * Keep natural-language adjacency such as:
+         *   中文https://example.com
+         */
+        return /[A-Za-z0-9_]/.test(
+            text[start - 1]
+        );
+    }
+
+    function hasInvalidMissingSchemeBoundary(
+        text,
+        start
+    ) {
+        if (start <= 0) {
+            return false;
+        }
+
+        /*
+         * Prevent:
+         *   https://example.com
+         * from also producing:
+         *   ttps://example.com
+         */
+        return /[A-Za-z0-9_]/.test(
+            text[start - 1]
+        );
+    }
+
+    function buildCandidates(
+        text,
+        baseOffset = 0
+    ) {
+        if (!text) {
+            return [];
+        }
+
+        const normalized = normalizeWidth(text);
+
+        if (!quickLooksLikeURL(normalized)) {
+            return [];
+        }
+
+        const hasSchemeMarker = normalized.includes('://');
+        const candidates = [];
+        const seen = new Set();
+
+        for (const spec of URL_PATTERNS) {
+            spec.regex.lastIndex = 0;
+
+            let match;
+
+            while (
+                (match = spec.regex.exec(normalized)) !== null
+            ) {
+                if (
+                    spec.kind === 'missing-scheme' &&
+                    hasInvalidMissingSchemeBoundary(
+                        normalized,
+                        match.index
+                    )
+                ) {
+                    continue;
+                }
+
+                if (
+                    ['scheme', 'defanged'].includes(spec.kind) &&
+                    hasInvalidSchemeLeftBoundary(
+                        normalized,
+                        match.index
+                    )
+                ) {
+                    continue;
+                }
+
+                if (
+                    spec.kind === 'scheme' &&
+                    hasUnsupportedOuterSchemePrefix(
+                        normalized,
+                        match.index
+                    )
+                ) {
+                    continue;
+                }
+
+                let trimmed = trimCandidate(match[0]);
+
+                trimmed = trimLikelyAdjacentCJKProse(
+                    trimmed,
+                    spec.kind
+                );
+
+                if (!trimmed) {
+                    continue;
+                }
+
+                const localStart = match.index;
+                const localEnd = localStart + trimmed.length;
+
+                if (
+                    ['bare', 'www'].includes(spec.kind) &&
+                    hasInvalidDomainBoundary(
+                        normalized,
+                        localStart,
+                        localEnd,
+                        spec.kind,
+                        hasSchemeMarker
+                    )
+                ) {
+                    continue;
+                }
+
+                if (
+                    spec.kind === 'bare' &&
+                    !isLikelyBareDomain(trimmed)
+                ) {
+                    continue;
+                }
+
+                const resolved = normalizeURL(
+                    trimmed,
+                    spec.kind
+                );
+
+                if (!resolved) {
+                    continue;
+                }
+
+                const start = baseOffset + localStart;
+                const end = start + trimmed.length;
+
+                const key =
+                    `${start}:${end}:${resolved.blocked}:${resolved.url}`;
+
+                if (seen.has(key)) {
+                    continue;
+                }
+
+                seen.add(key);
+
+                candidates.push({
+                    raw: trimmed,
+                    start,
+                    end,
+                    priority: spec.priority,
+                    kind: spec.kind,
+                    ...resolved
+                });
+            }
+        }
+
+        return candidates;
+    }
+
+    // ================================================================
+    // Bounded scanning + cache
+    // ================================================================
+
+    function getScanWindow(
+        node,
+        start,
+        end = start
+    ) {
+        const text = node.nodeValue || '';
+
+        if (
+            text.length <=
+            CONFIG.maxWholeNodeChars
+        ) {
+            return {
+                text,
+                baseOffset: 0
+            };
+        }
+
+        const centerStart = Math.max(
+            0,
+            Math.min(start, text.length)
+        );
+
+        const centerEnd = Math.max(
+            centerStart,
+            Math.min(end, text.length)
+        );
+
+        const from = Math.max(
+            0,
+            centerStart - CONFIG.scanRadiusChars
+        );
+
+        const to = Math.min(
+            text.length,
+            centerEnd + CONFIG.scanRadiusChars
+        );
+
+        return {
+            text: text.slice(from, to),
+            baseOffset: from
+        };
+    }
+
+    function isCandidateClippedByScanWindow(
+        candidate,
+        fullText,
+        windowed
+    ) {
+        const localStart =
+            candidate.start - windowed.baseOffset;
+
+        const localEnd =
+            candidate.end - windowed.baseOffset;
+
+        const windowEnd =
+            windowed.baseOffset + windowed.text.length;
+
+        const leftClipped =
+            windowed.baseOffset > 0 &&
+            !URL_TOKEN_SEPARATOR_RE.test(
+                fullText[windowed.baseOffset - 1]
+            ) &&
+            !URL_TOKEN_SEPARATOR_RE.test(
+                windowed.text.slice(0, localStart)
+            );
+
+        const rightClipped =
+            windowEnd < fullText.length &&
+            !URL_TOKEN_SEPARATOR_RE.test(
+                fullText[windowEnd]
+            ) &&
+            !URL_TOKEN_SEPARATOR_RE.test(
+                windowed.text.slice(localEnd)
+            );
+
+        return leftClipped || rightClipped;
+    }
+
+    function getCandidatesForNode(
+        node,
+        start,
+        end = start
+    ) {
+        if (
+            !node ||
+            node.nodeType !== Node.TEXT_NODE
+        ) {
+            return [];
+        }
+
+        const fullText = node.nodeValue || '';
+
+        if (
+            fullText.length <=
+            CONFIG.maxWholeNodeChars
+        ) {
+            const cached = nodeCache.get(node);
+
+            if (
+                cached &&
+                cached.text === fullText
+            ) {
+                return cached.candidates;
+            }
+
+            const candidates = buildCandidates(
+                fullText,
+                0
+            );
+
+            nodeCache.set(
+                node,
+                {
+                    text: fullText,
+                    candidates
+                }
+            );
+
+            return candidates;
+        }
+
+        const windowed = getScanWindow(
+            node,
+            start,
+            end
+        );
+
+        return buildCandidates(
+            windowed.text,
+            windowed.baseOffset
+        )
+            .filter(
+                candidate =>
+                    !isCandidateClippedByScanWindow(
+                        candidate,
+                        fullText,
+                        windowed
+                    )
+            );
+    }
+
+    function bestCandidate(candidates) {
+        if (!candidates.length) {
+            return null;
+        }
+
+        candidates.sort(
+            (a, b) =>
+                b.priority - a.priority ||
+                (b.end - b.start) -
+                (a.end - a.start)
+        );
+
+        return candidates[0];
+    }
+
+    const DOM_SPLIT_RIGHT_CONTINUATION_RE =
+        /[\p{L}\p{N}-]/u;
+
+    function nextSiblingTextChar(node) {
+        let sibling = node.nextSibling;
+
+        while (sibling) {
+            const text =
+                sibling.nodeType === Node.TEXT_NODE
+                    ? sibling.nodeValue || ''
+                    : sibling.nodeType === Node.ELEMENT_NODE
+                        ? sibling.textContent || ''
+                        : '';
+
+            if (text) {
+                return text[0] || '';
+            }
+
+            sibling = sibling.nextSibling;
+        }
+
+        return '';
+    }
+
+    function isCandidateSplitAcrossSibling(
+        node,
+        candidate
+    ) {
+        if (
+            !node ||
+            node.nodeType !== Node.TEXT_NODE ||
+            !candidate
+        ) {
+            return false;
+        }
+
+        const trailing = (node.nodeValue || '').slice(
+            candidate.end
+        );
+
+        /*
+         * trimCandidate() removes sentence-ending periods. If such a period
+         * is immediately followed by another inline hostname label, the URL
+         * is split across DOM nodes rather than terminated:
+         *   http://www.<em>mozilla</em>.org/
+         *   https://example.<span>com</span>/path
+         *
+         * Cross-TextNode reconstruction remains intentionally unsupported;
+         * this guard only prevents opening the truncated prefix.
+         */
+        if (!/^\.+$/u.test(trailing)) {
+            return false;
+        }
+
+        const next = nextSiblingTextChar(node);
+
+        return Boolean(
+            next &&
+            DOM_SPLIT_RIGHT_CONTINUATION_RE.test(next)
+        );
+    }
+
+    function findURLAtOffset(
+        node,
+        offset
+    ) {
+        return bestCandidate(
+            getCandidatesForNode(
+                node,
+                offset
+            )
+                .filter(
+                    item =>
+                        offset >= item.start &&
+                        offset < item.end
+                )
+        );
+    }
+
+    function findURLOverRange(
+        node,
+        start,
+        end
+    ) {
+        return bestCandidate(
+            getCandidatesForNode(
+                node,
+                start,
+                end
+            )
+                .filter(
+                    item =>
+                        item.start < end &&
+                        start < item.end
+                )
+        );
+    }
+
+    function createRange(
+        node,
+        start,
+        end
+    ) {
+        if (
+            !node ||
+            node.nodeType !== Node.TEXT_NODE
+        ) {
+            return null;
+        }
+
+        const length = node.nodeValue.length;
+        const range = document.createRange();
+
+        range.setStart(
+            node,
+            Math.max(0, Math.min(start, length))
+        );
+
+        range.setEnd(
+            node,
+            Math.max(0, Math.min(end, length))
+        );
+
+        return range;
+    }
+
+    // ================================================================
+    // UI
+    // ================================================================
+
+    function cleanupLegacyUI() {
+        for (const id of LEGACY_IDS) {
+            document.getElementById(id)?.remove();
+        }
+    }
+
+    function ensureUI() {
+        if (
+            uiHost?.isConnected &&
+            uiPanel
+        ) {
+            return uiPanel;
+        }
+
+        const host = document.createElement(
+            'plain-text-url-opener-ui'
+        );
+
+        host.id =
+            'plain-text-url-opener-ui-host';
+
+        host.style.cssText = `
+            all: initial !important;
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            pointer-events: none !important;
+            z-index: 2147483647 !important;
+        `;
+
+        const root = host.attachShadow({
+            mode: 'open'
+        });
+
+        const style = document.createElement(
+            'style'
+        );
+
+        style.textContent = `
+            :host {
+                all: initial !important;
+                pointer-events: none !important;
+            }
+
+            #panel {
+                display: none;
+                position: fixed;
+                z-index: 2147483647;
+
+                left: 12px;
+                bottom: 10px;
+
+                max-width:
+                    min(
+                        760px,
+                        calc(100vw - 24px)
+                    );
+
+                box-sizing: border-box;
+                padding: 6px 9px;
+                border: 0;
+                border-radius: 6px;
+
+                background:
+                    rgba(
+                        28,
+                        28,
+                        28,
+                        .94
+                    );
+
+                color: white;
+
+                font:
+                    12px/1.4
+                    system-ui,
+                    sans-serif;
+
+                font-weight: 400;
+                text-align: left;
+                text-decoration: none;
+
+                box-shadow:
+                    0 2px 10px
+                    rgba(
+                        0,
+                        0,
+                        0,
+                        .25
+                    );
+
+                pointer-events: none;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            #panel.visible {
+                display: block;
+            }
+
+            #panel.warning {
+                background:
+                    rgba(
+                        92,
+                        66,
+                        14,
+                        .96
+                    );
+            }
+        `;
+
+        const panel = document.createElement(
+            'div'
+        );
+
+        panel.id = 'panel';
+        panel.setAttribute('role', 'status');
+        panel.setAttribute('aria-live', 'polite');
+
+        root.append(
+            style,
+            panel
+        );
+
+        document.documentElement.appendChild(
+            host
+        );
+
+        uiHost = host;
+        uiPanel = panel;
+
+        return panel;
+    }
+
+    function ensureHighlightStyle() {
+        if (
+            document.getElementById(
+                'plain-text-url-opener-highlight-style'
+            )
+        ) {
+            return;
+        }
+
+        const style = document.createElement(
+            'style'
+        );
+
+        style.id =
+            'plain-text-url-opener-highlight-style';
+
+        style.textContent = `
+            ::highlight(${HIGHLIGHT.hover}) {
+                text-decoration-line: underline;
+                text-decoration-style: solid;
+                text-decoration-thickness: 2px;
+                text-underline-offset: 2px;
+
+                background-color:
+                    rgba(
+                        70,
+                        140,
+                        255,
+                        .08
+                    );
+            }
+
+            ::highlight(${HIGHLIGHT.warning}) {
+                text-decoration-line: underline;
+                text-decoration-style: wavy;
+                text-decoration-thickness: 2px;
+                text-underline-offset: 2px;
+
+                background-color:
+                    rgba(
+                        230,
+                        170,
+                        30,
+                        .12
+                    );
+            }
+
+            ::highlight(${HIGHLIGHT.success}) {
+                text-decoration-line: underline;
+                text-decoration-style: solid;
+                text-decoration-thickness: 2px;
+                text-underline-offset: 2px;
+
+                background-color:
+                    rgba(
+                        70,
+                        180,
+                        110,
+                        .14
+                    );
+            }
+        `;
+
+        (
+            document.head ||
+            document.documentElement
+        ).appendChild(style);
+    }
+
+    function setHighlight(
+        name,
+        range
+    ) {
+        if (range) {
+            ensureHighlightStyle();
+        }
+
+        if (
+            !window.CSS?.highlights ||
+            typeof window.Highlight !== 'function'
+        ) {
+            return;
+        }
+
+        if (!range) {
+            CSS.highlights.delete(name);
+            return;
+        }
+
+        CSS.highlights.set(
+            name,
+            new Highlight(
+                range.cloneRange()
+            )
+        );
+    }
+
+    function clearHighlights() {
+        for (
+            const name
+            of Object.values(HIGHLIGHT)
+        ) {
+            setHighlight(
+                name,
+                null
+            );
+        }
+    }
+
+    function showPanel(
+        text,
+        warning = false,
+        force = false
+    ) {
+        if (
+            !CONFIG.hoverStatus &&
+            !force
+        ) {
+            return;
+        }
+
+        const panel = ensureUI();
+
+        panel.textContent = text;
+
+        panel.classList.toggle(
+            'warning',
+            warning
+        );
+
+        panel.classList.add('visible');
+
+        panelVisible = true;
+    }
+
+    function hidePanel() {
+        if (uiPanel) {
+            uiPanel.classList.remove(
+                'visible',
+                'warning'
+            );
+
+            uiPanel.textContent = '';
+        }
+
+        panelVisible = false;
+    }
+
+    function resetHoverState() {
+        hoverState = null;
+        pendingPointerEvent = null;
+    }
+
+    function cancelFeedback() {
+        if (!feedbackTimer) {
+            return;
+        }
+
+        clearTimeout(feedbackTimer);
+        feedbackTimer = 0;
+
+        setHighlight(
+            HIGHLIGHT.success,
+            null
+        );
+
+        setHighlight(
+            HIGHLIGHT.warning,
+            null
+        );
+    }
+
+    function clearHover() {
+        resetHoverState();
+
+        setHighlight(
+            HIGHLIGHT.hover,
+            null
+        );
+
+        if (!feedbackTimer) {
+            setHighlight(
+                HIGHLIGHT.warning,
+                null
+            );
+
+            hidePanel();
+        }
+    }
+
+    function clearUI() {
+        if (hoverTimer) {
+            clearTimeout(hoverTimer);
+            hoverTimer = 0;
+        }
+
+        resetHoverState();
+        cancelFeedback();
+        clearHighlights();
+        hidePanel();
+    }
+
+    function hasActiveUI() {
+        return Boolean(
+            hoverTimer ||
+            feedbackTimer ||
+            pendingPointerEvent ||
+            hoverState ||
+            panelVisible
+        );
+    }
+
+    function showFeedback(
+        range,
+        text,
+        warning = false
+    ) {
+        cancelFeedback();
+        clearHighlights();
+
+        hoverState = null;
+        pendingPointerEvent = null;
+
+        const highlightName =
+            warning
+                ? HIGHLIGHT.warning
+                : HIGHLIGHT.success;
+
+        setHighlight(
+            highlightName,
+            range
+        );
+
+        showPanel(
+            text,
+            warning,
+            true
+        );
+
+        feedbackTimer = setTimeout(
+            () => {
+                feedbackTimer = 0;
+
+                setHighlight(
+                    highlightName,
+                    null
+                );
+
+                hidePanel();
+            },
+            CONFIG.feedbackMs
+        );
+    }
+
+    function statusTextFor(candidate) {
+        if (
+            candidate.blocked &&
+            candidate.reason === 'defanged'
+        ) {
+            return (
+                `⚠ Defanged URL — blocked: ${candidate.original}`
+            );
+        }
+
+        if (candidate.userInfo) {
+            try {
+                return (
+                    `⚠ 網址包含 User Info → ${new URL(candidate.url).host}`
+                );
+            }
+            catch {
+                return (
+                    `⚠ 網址包含 User Info → ${candidate.url}`
+                );
+            }
+        }
+
+        if (candidate.idn) {
+            return (
+                `⚠ IDN 網域 → ${candidate.url}`
+            );
+        }
+
+        return (
+            `Plain Text URL → ${candidate.url}`
+        );
+    }
+
+    function candidateIsWarning(candidate) {
+        return Boolean(
+            candidate.blocked ||
+            candidate.userInfo ||
+            candidate.idn
+        );
+    }
+
+    // ================================================================
+    // Hover
+    // ================================================================
+
+    function processHover(event) {
+        const target =
+            event.target instanceof Element
+                ? event.target
+                : event.target?.parentElement;
+
+        if (
+            !target ||
+            isIgnoredElement(target)
+        ) {
+            clearHover();
+            return;
+        }
+
+        cancelFeedback();
+
+        const caret = getCaretFromPoint(
+            event.clientX,
+            event.clientY
+        );
+
+        const point = resolveTextPoint(
+            caret?.node,
+            caret?.offset ?? 0
+        );
+
+        if (
+            !point ||
+            isIgnoredElement(point.node.parentElement)
+        ) {
+            clearHover();
+            return;
+        }
+
+        const detected = findURLAtOffset(
+            point.node,
+            point.offset
+        );
+
+        if (
+            detected &&
+            isCandidateSplitAcrossSibling(
+                point.node,
+                detected
+            )
+        ) {
+            clearHover();
+            return;
+        }
+
+        if (!detected) {
+            clearHover();
+            return;
+        }
+
+        const key =
+            `${detected.start}:${detected.end}:${detected.blocked}:${detected.url}`;
+
+        if (
+            hoverState?.node === point.node &&
+            hoverState?.key === key
+        ) {
+            return;
+        }
+
+        const range = createRange(
+            point.node,
+            detected.start,
+            detected.end
+        );
+
+        if (!range) {
+            clearHover();
+            return;
+        }
+
+        hoverState = {
+            node: point.node,
+            key
+        };
+
+        if (CONFIG.hoverUnderline) {
+            setHighlight(
+                HIGHLIGHT.hover,
+                null
+            );
+
+            setHighlight(
+                HIGHLIGHT.warning,
+                null
+            );
+
+            setHighlight(
+                candidateIsWarning(detected)
+                    ? HIGHLIGHT.warning
+                    : HIGHLIGHT.hover,
+                range
+            );
+        }
+
+        showPanel(
+            statusTextFor(detected),
+            candidateIsWarning(detected)
+        );
+    }
+
+    addEvent(
+        document,
+        'pointermove',
+        event => {
+            pendingPointerEvent = event;
+
+            if (hoverTimer) {
+                clearTimeout(hoverTimer);
+            }
+
+            hoverTimer = setTimeout(
+                () => {
+                    hoverTimer = 0;
+
+                    const pending =
+                        pendingPointerEvent;
+
+                    pendingPointerEvent = null;
+
+                    if (pending) {
+                        processHover(pending);
+                    }
+                },
+                CONFIG.hoverDelayMs
+            );
+        },
+        {
+            passive: true
+        }
+    );
+
+    // ================================================================
+    // UI / SPA cleanup
+    // ================================================================
+
+    addEvent(
+        document,
+        'pointerleave',
+        clearUI,
+        {
+            passive: true
+        }
+    );
+
+    addEvent(
+        window,
+        'blur',
+        clearUI,
+        {
+            passive: true
+        }
+    );
+
+    addEvent(
+        document,
+        'visibilitychange',
+        () => {
+            if (document.hidden) {
+                clearUI();
+            }
+        },
+        {
+            passive: true
+        }
+    );
+
+    addEvent(
+        document,
+        'scroll',
+        () => {
+            if (hasActiveUI()) {
+                clearUI();
+            }
+        },
+        {
+            passive: true,
+            capture: true
+        }
+    );
+
+    addEvent(
+        window,
+        'popstate',
+        clearUI,
+        {
+            passive: true
+        }
+    );
+
+    addEvent(
+        window,
+        'hashchange',
+        clearUI,
+        {
+            passive: true
+        }
+    );
+
+    if (
+        window.navigation &&
+        typeof window.navigation.addEventListener === 'function'
+    ) {
+        addEvent(
+            window.navigation,
+            'navigate',
+            clearUI
+        );
+    }
+
+    // ================================================================
+    // Open URL
+    // ================================================================
+
+    function openNewTabSafely(url) {
+        const opened = window.open(
+            'about:blank',
+            '_blank'
+        );
+
+        if (!opened) {
+            return false;
+        }
+
+        try {
+            opened.opener = null;
+            opened.location.replace(url);
+            return true;
+        }
+        catch {
+            try {
+                opened.location.href = url;
+                return true;
+            }
+            catch {
+                try {
+                    opened.close();
+                }
+                catch {
+                    // Ignore cleanup failure.
+                }
+
+                return false;
+            }
+        }
+    }
+
+    // ================================================================
+    // Double click
+    // ================================================================
+
+    addEvent(
+        document,
+        'dblclick',
+        event => {
+            if (event.button !== 0) {
+                return;
+            }
+
+            const target =
+                event.target instanceof Element
+                    ? event.target
+                    : event.target?.parentElement;
+
+            if (
+                !target ||
+                isIgnoredElement(target)
+            ) {
+                return;
+            }
+
+            const selection = getSelection();
+
+            if (
+                !selection ||
+                selection.rangeCount === 0 ||
+                selection.isCollapsed
+            ) {
+                return;
+            }
+
+            const nativeRange =
+                selection.getRangeAt(0);
+
+            /*
+             * Lightweight rule:
+             * complete URL must remain inside one TextNode.
+             */
+            if (
+                nativeRange.startContainer.nodeType !==
+                    Node.TEXT_NODE ||
+                nativeRange.startContainer !==
+                    nativeRange.endContainer
+            ) {
+                return;
+            }
+
+            const textNode =
+                nativeRange.startContainer;
+
+            if (isIgnoredElement(textNode.parentElement)) {
+                return;
+            }
+
+            const detected = findURLOverRange(
+                textNode,
+                nativeRange.startOffset,
+                nativeRange.endOffset
+            );
+
+            if (
+                detected &&
+                isCandidateSplitAcrossSibling(
+                    textNode,
+                    detected
+                )
+            ) {
+                return;
+            }
+
+            if (!detected) {
+                log(
+                    'No URL around:',
+                    selection.toString()
+                );
+
+                return;
+            }
+
+            const range = createRange(
+                textNode,
+                detected.start,
+                detected.end
+            );
+
+            if (!range) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (hoverTimer) {
+                clearTimeout(hoverTimer);
+                hoverTimer = 0;
+            }
+
+            pendingPointerEvent = null;
+            hoverState = null;
+
+            selection.removeAllRanges();
+
+            selection.addRange(
+                range.cloneRange()
+            );
+
+            // --------------------------------------------------------
+            // Defanged URL
+            // --------------------------------------------------------
+
+            if (detected.blocked) {
+                showFeedback(
+                    range,
+                    '⚠ Defanged URL blocked — not opened automatically',
+                    true
+                );
+
+                return;
+            }
+
+            // --------------------------------------------------------
+            // Alt + double-click
+            // --------------------------------------------------------
+
+            if (
+                CONFIG.altSelectOnly &&
+                event.altKey
+            ) {
+                showFeedback(
+                    range,
+                    'Plain Text URL — URL selected'
+                );
+
+                return;
+            }
+
+            // --------------------------------------------------------
+            // Open mode
+            // --------------------------------------------------------
+
+            let newTab =
+                CONFIG.openInNewTab;
+
+            if (
+                CONFIG.shiftReversesOpenMode &&
+                event.shiftKey
+            ) {
+                newTab = !newTab;
+            }
+
+            if (!newTab) {
+                location.assign(
+                    detected.url
+                );
+
+                return;
+            }
+
+            // --------------------------------------------------------
+            // New tab
+            // --------------------------------------------------------
+
+            if (
+                !openNewTabSafely(
+                    detected.url
+                )
+            ) {
+                showFeedback(
+                    range,
+                    '⚠ 瀏覽器阻擋了新分頁',
+                    true
+                );
+
+                return;
+            }
+
+            if (
+                !document.hidden &&
+                document.hasFocus()
+            ) {
+                const warning = Boolean(
+                    detected.userInfo ||
+                    detected.idn
+                );
+
+                const message =
+                    detected.userInfo
+                        ? `⚠ URL with User Info opened → ${detected.url}`
+                        : detected.idn
+                            ? `⚠ IDN URL opened → ${detected.url}`
+                            : `Opened → ${detected.url}`;
+
+                showFeedback(
+                    range,
+                    message,
+                    warning
+                );
+            }
+        },
+        {
+            capture: true
+        }
+    );
+
+    // ================================================================
+    // Lifecycle cleanup
+    // ================================================================
+
+    function cleanup() {
+        if (hoverTimer) {
+            clearTimeout(hoverTimer);
+        }
+
+        if (feedbackTimer) {
+            clearTimeout(feedbackTimer);
+        }
+
+        hoverTimer = 0;
+        feedbackTimer = 0;
+        pendingPointerEvent = null;
+        hoverState = null;
+
+        clearHighlights();
+        hidePanel();
+
+        uiHost?.remove();
+
+        uiHost = null;
+        uiPanel = null;
+
+        document
+            .getElementById(
+                'plain-text-url-opener-highlight-style'
+            )
+            ?.remove();
+
+        document
+            .getElementById(
+                'text-link-universal-highlight-style'
+            )
+            ?.remove();
+    }
+
+    cleanupLegacyUI();
+
+    window[GLOBAL_KEY] = {
+        version: '1.0.3',
+        controller,
+        cleanup
+    };
+
+    log(
+        'Plain Text URL Opener v1.0.3 Stable loaded'
+    );
+})();
