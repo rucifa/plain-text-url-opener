@@ -54,19 +54,18 @@ These tools solve related problems, but they make **different design choices**. 
 | Double-click plain-text URL to open directly | ✅ | ✅ | ❌ |
 | Works without first rewriting page text into links | ✅ | ✅ | ❌ |
 | Converts text URLs into real `<a>` links | ❌ | ❌ | ✅ |
-| No background full-page linkification required | ✅ | ✅ | ❌ / depends on trigger mode |
 | Unicode / multibyte URL handling | ✅ | ✅ | ✅ |
-| Reconstruct URLs split across TextNodes | ❌ intentionally unsupported | ✅ | ⚠️ not the focus of this comparison |
-| Dynamic content | ✅ detected on interaction | ✅* | ✅ |
-| Custom rules | ❌ | ⚠️ | ✅ |
-| Whitelist / blacklist | ❌ | ⚠️ | ✅ |
-| Settings UI | ❌ | ✅ | ✅ |
+| Reconstruct URLs split across TextNodes | ❌ intentionally unsupported | ✅ | ⚠️ not explicitly promised in README |
+| Newly inserted text content | ✅ detected at interaction time | ⚠️ different implementation model | ✅ dynamic content support |
+| Custom rules | ❌ | — | ✅ |
+| Whitelist / blacklist | ❌ | — | ✅ |
 | Userscript distribution | ✅ | ❌ | ✅ |
 | Firefox extension | ❌ | ✅ | ✅ |
-| Public regression/test fixture | ✅ | ✅ public testcases | ✅ demo/testcases |
+| Public test page / testcase corpus | ✅ fixed fixture | ✅ | ✅ |
 
 > `❌` does not mean “worse”; it means that capability is **not the design direction chosen by that tool**.  
-> `⚠️` means the feature or implementation differs enough that a simple yes/no comparison would be misleading.
+> `⚠️` means the feature or implementation differs enough that a simple yes/no comparison would be misleading.  
+> `—` means the public documentation does not make that item a primary comparison point, so no assumption is made here.
 
 ### Plain Text URL Opener's focus
 
