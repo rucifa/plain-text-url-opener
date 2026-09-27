@@ -102,13 +102,35 @@ If you want plain-text URLs to become clickable links directly inside the page, 
 
 ## Installation
 
-A compatible userscript manager is required.
+Plain Text URL Opener is a **userscript**. If you have not used userscripts before, install a userscript manager in your browser first, then install the script itself.
 
-### Direct install
+### 1. Install a userscript manager
+
+Common options include:
+
+| Userscript manager | Notes | Official link |
+|---|---|---|
+| **Violentmonkey** | Popular open-source userscript manager | https://violentmonkey.github.io/ |
+| **Tampermonkey** | Popular cross-browser userscript manager | https://www.tampermonkey.net/ |
+| **Greasemonkey** | Long-running userscript manager for Firefox | https://addons.mozilla.org/firefox/addon/greasemonkey/ |
+
+Plain Text URL Opener uses `@grant none` and does not depend on manager-specific GM APIs. However, the project has not yet completed exhaustive validation across every browser × userscript-manager combination, so the table lists common options rather than claiming full compatibility for every combination.
+
+### 2. Install Plain Text URL Opener
+
+After installing a userscript manager, open the script below:
 
 **[Install `plain-text-url-opener.user.js`](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)**
 
-If your userscript manager does not automatically intercept the Raw URL, import that URL manually in the manager.
+Normally, your userscript manager should open its installation screen automatically. If it does not intercept the Raw URL, import that URL manually in the manager.
+
+### GitHub Releases
+
+Stable versions are intended to be published on [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases) using the same primary asset name:
+
+`plain-text-url-opener.user.js`
+
+If you want to stay on a specific version, download the `.user.js` asset from that release. GitHub's automatically generated `Source code (zip)` / `Source code (tar.gz)` archives are mainly for source-code snapshots and are not the primary installation files for regular users.
 
 ### Source
 
