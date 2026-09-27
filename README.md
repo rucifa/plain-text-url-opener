@@ -135,10 +135,6 @@ Plain Text URL Opener 使用 `@grant none`，不依賴特定管理器提供的 G
 
 如果你希望固定使用某個特定版本，建議從對應的 Release 下載這個 `.user.js` 檔案。GitHub 自動產生的 `Source code (zip)` / `Source code (tar.gz)` 主要用於原始碼封存，不是一般使用者的主要安裝方式。
 
-### 原始碼
-
-[`plain-text-url-opener.user.js`](./plain-text-url-opener.user.js)
-
 ---
 
 ## 操作方式
