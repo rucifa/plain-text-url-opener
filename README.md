@@ -5,11 +5,11 @@
 **純文字網址雙擊開啟器**
 
 Plain Text URL Opener 是一個 **userscript（使用者腳本）**，需要搭配
-[Violentmonkey（暴力猴）](https://violentmonkey.github.io/)、[Tampermonkey](https://www.tampermonkey.net/) 等 userscript 管理器使用。
+[Violentmonkey](https://violentmonkey.github.io/)、[Tampermonkey](https://www.tampermonkey.net/) 等 userscript 管理器使用。
 
 安裝後，只要在網頁上的**純文字網址直接雙擊**，就能開啟網址；不會把整個網頁的文字改寫成超連結，也不會在背景持續掃描整個頁面。
 
-**[安裝 Plain Text URL Opener](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)** · [開啟測試頁](https://rucifa.github.io/plain-text-url-opener/)
+**[開啟測試頁](https://rucifa.github.io/plain-text-url-opener/)**
 
 **繁體中文** · [English](./README.en.md)
 
@@ -27,7 +27,7 @@ Plain Text URL Opener 是一個 **userscript（使用者腳本）**。第一次�
 
 | Userscript 管理器 | 說明 | 官方連結 |
 |---|---|---|
-| **Violentmonkey（暴力猴）** | 常見的開源 userscript 管理器 | https://violentmonkey.github.io/ |
+| **Violentmonkey** | 常見的開源 userscript 管理器 | https://violentmonkey.github.io/ |
 | **Tampermonkey** | 常見的跨瀏覽器 userscript 管理器；中文社群有時俗稱「油猴」 | https://www.tampermonkey.net/ |
 | **Greasemonkey** | Firefox 上歷史悠久的 userscript 管理器 | https://addons.mozilla.org/firefox/addon/greasemonkey/ |
 
@@ -128,8 +128,6 @@ Plain Text URL Opener 讓你直接在網址文字上操作，不需要先完整�
 
 [Piro 的 Text Link](https://addons.mozilla.org/firefox/addon/text-link/) 是這類工具中歷史悠久的 Firefox 擴充套件。它同樣主打**雙擊純文字 URI 直接開啟**，並明確支援跨多個 TextNode 的 URI、多位元文字 URI，而且不需要把頁面文字改寫成連結。
 
-Text Link 的歷史 testcase 也是本專案建立 regression 思維時的重要參考之一。
-
 - Firefox Add-ons: https://addons.mozilla.org/firefox/addon/text-link/
 - 歷史文件 / testcase: https://piro.sakura.ne.jp/xul/textlink/index.html.en
 
@@ -138,6 +136,12 @@ Text Link 的歷史 testcase 也是本專案建立 regression 思維時的重要
 [Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus) 採用另一條路線：它會**偵測文字網址並轉成真正的連結**，並提供 dynamic content、Unicode、自訂規則、whitelist / blacklist、圖片嵌入與多種觸發方式。
 
 如果你希望網頁上的純文字網址在頁面中直接變成可點擊連結，Linkify Plus Plus 的功能範圍會比本專案更完整；Plain Text URL Opener 則刻意避免 DOM linkification。
+
+### 參考與致謝
+
+Plain Text URL Opener 的設計與測試方法曾參考上述兩個相關專案的公開說明與測試案例；其中 [Text Link](https://addons.mozilla.org/firefox/addon/text-link/) 的歷史 testcase 是本專案建立固定回歸測試思維的重要參考之一，[Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus) 則提供了另一種「將純文字網址直接轉成可點擊連結」的設計對照。
+
+本 repo 的實作為獨立撰寫；除非 repo 內另有明確註記，否則未直接納入上述專案的原始碼。
 
 ---
 
@@ -241,14 +245,6 @@ Repo 根目錄的 [`index.html`](./index.html) 是固定的**公開測試頁 v1.
 2. 採用最小修正。
 3. 執行固定回歸測試、瀏覽器實際操作測試與必要的效能檢查。
 4. 只有發現真實程式錯誤、測試案例本身有誤，或產品規格正式變更時，才修改固定測試案例。
-
----
-
-## 背景與致謝
-
-Plain Text URL Opener 在設計與測試方法上，曾參考 [Text Link](https://addons.mozilla.org/firefox/addon/text-link/)（Piro）與 [Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus)（eight04）的公開說明與測試案例。兩者與本專案的設計差異已在上方「與 Text Link / Linkify Plus Plus 有什麼不同？」中說明。
-
-本 repo 的實作為獨立撰寫；除非 repo 內另有明確註記，否則未直接納入上述專案的原始碼。
 
 ---
 
