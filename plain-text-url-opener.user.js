@@ -2,13 +2,14 @@
 // @name         Plain Text URL Opener
 // @name:zh-TW   純文字網址雙擊開啟器
 // @namespace    https://github.com/rucifa/plain-text-url-opener
-// @version      1.0.6
+// @version      1.0.7
 // @description  Double-click plain-text HTTP(S) URLs to open them. Lightweight, no DOM linkification, no full-page scanning, no settings required.
 // @description:zh-TW 雙擊開啟網頁中的純文字 HTTP(S) 網址。輕量、不改寫正文 DOM、不進行背景全頁掃描，也不需要設定介面。
 // @match        http://*/*
 // @match        https://*/*
 // @license      MIT with Commons Clause License Condition v1.0
 // @supportURL   https://github.com/rucifa/plain-text-url-opener/issues
+// @icon         https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/assets/icon-64.png
 // @grant        none
 // @run-at       document-idle
 // ==/UserScript==
@@ -308,7 +309,7 @@
 
     const instance = {
         owner: 'Plain Text URL Opener',
-        version: '1.0.6',
+        version: '1.0.7',
         controller,
         cleanup
     };
@@ -2799,6 +2800,6 @@
     cleanupLegacyUI();
 
     log(
-        'Plain Text URL Opener v1.0.6 Stable loaded'
+        'Plain Text URL Opener v1.0.7 Stable loaded'
     );
 })();

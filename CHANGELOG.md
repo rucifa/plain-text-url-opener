@@ -4,6 +4,20 @@ All notable release changes to Plain Text URL Opener are documented here.
 
 The Regression Fixture has its own version line and should not be changed merely to make a userscript release pass.
 
+## [1.0.7] - 2026-09-28
+
+### Branding / metadata
+
+- Add the official Plain Text URL Opener icon asset for userscript managers.
+- Add the standard userscript `@icon` metadata entry, pointing to the repository-hosted 64×64 PNG.
+- Update userscript metadata, runtime instance version, and load log from `1.0.6` to `1.0.7`.
+
+### Behavior
+
+- No parser, URL-matching, DOM, UI, navigation, cache, security-boundary, or event-handling behavior changed.
+- Regression Fixture v1.2 remains unchanged at 166 cases.
+- Behavioral validation is inherited from the fully accepted v1.0.6 implementation; v1.0.7 changes branding / publication metadata only.
+
 ## [1.0.6] - 2026-09-28
 
 ### Fixed
