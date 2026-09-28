@@ -1,10 +1,10 @@
+<p align="right"><strong>繁體中文</strong> · <a href="./README.en.md">English</a></p>
+
 <div align="center">
 
 # Plain Text URL Opener
 
 **純文字網址雙擊開啟器**
-
-**繁體中文** · [English](./README.en.md)
 
 </div>
 
