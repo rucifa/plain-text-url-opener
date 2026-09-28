@@ -12,7 +12,7 @@ Plain Text URL Opener 是一個 **userscript（使用者腳本）**，需要搭�
 
 安裝後，只要在網頁上的**純文字網址直接雙擊**，就能開啟網址；不會把整個網頁的文字改寫成超連結，也不會在背景持續掃描整個頁面。
 
-> 🧪 **想先看看它怎麼運作？** [開啟公開測試頁 v1.2（166 個測試案例）](https://rucifa.github.io/plain-text-url-opener/?v=1.2)
+> 🧪 **想先看看它怎麼運作？** [開啟公開測試頁 v1.3（169 個測試案例）](https://rucifa.github.io/plain-text-url-opener/?v=1.3)
 
 ---
 
@@ -206,6 +206,7 @@ v1.0.10 為目前 Stable baseline。本版只最佳化官方 icon 的 PNG 壓縮
 | 項目 | 狀態 |
 |---|---|
 | Regression Fixture | **v1.3 / 169 cases** |
+| Fixture v1.3 實際瀏覽器互動驗證 | **Chromium 171 / 171 · Firefox 171 / 171 PASS** |
 | v1.0.10 icon / metadata 驗收 | **PASS** |
 | v1.0.9 Integration Audit | **PASS** |
 | 核心完整行為驗收基準 | **v1.0.6** |

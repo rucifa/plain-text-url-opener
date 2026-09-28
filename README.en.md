@@ -12,7 +12,7 @@ Plain Text URL Opener is a **userscript**. It requires a userscript manager such
 
 Once installed, double-click a **plain-text URL** on a webpage to open it. The script does not rewrite the whole page into links or continuously scan the page in the background.
 
-> 🧪 **Want to see how it works first?** [Open public test page v1.2 (166 fixed cases)](https://rucifa.github.io/plain-text-url-opener/?v=1.2)
+> 🧪 **Want to see how it works first?** [Open public test page v1.3 (169 fixed cases)](https://rucifa.github.io/plain-text-url-opener/?v=1.3)
 
 ---
 
@@ -204,6 +204,7 @@ v1.0.10 is the current Stable baseline. This release only optimizes the official
 | Item | Status |
 |---|---|
 | Regression Fixture | **v1.3 / 169 cases** |
+| Fixture v1.3 real-browser interaction validation | **Chromium 171 / 171 · Firefox 171 / 171 PASS** |
 | v1.0.10 icon / metadata acceptance | **PASS** |
 | v1.0.9 Integration Audit | **PASS** |
 | Full core behavioral acceptance baseline | **v1.0.6** |
