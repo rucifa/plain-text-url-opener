@@ -210,7 +210,7 @@ v1.0.10 is the current Stable baseline. This release only optimizes the official
 | Full core behavioral acceptance baseline | **v1.0.6** |
 | Firefox / Chromium family | ✅ Real-browser and userscript-manager icon checks completed |
 
-For detailed release history, see the [CHANGELOG](./CHANGELOG.md) and [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases).
+For detailed release history, see the [CHANGELOG](./CHANGELOG.en.md) and [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases).
 
 For complete validation evidence, see the [Acceptance Reports](./tests/acceptance/), or open the [public Regression Fixture v1.3](https://rucifa.github.io/plain-text-url-opener/?v=1.3).
 
