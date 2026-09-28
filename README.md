@@ -4,16 +4,15 @@
 
 **純文字網址雙擊開啟器**
 
-Plain Text URL Opener 是一個 **userscript（使用者腳本）**，需要搭配
-[Violentmonkey](https://violentmonkey.github.io/)、[Tampermonkey](https://www.tampermonkey.net/) 等 userscript 管理器使用。
-
-安裝後，只要在網頁上的**純文字網址直接雙擊**，就能開啟網址；不會把整個網頁的文字改寫成超連結，也不會在背景持續掃描整個頁面。
-
-**[開啟測試頁](https://rucifa.github.io/plain-text-url-opener/)**
-
 **繁體中文** · [English](./README.en.md)
 
 </div>
+
+Plain Text URL Opener 是一個 **userscript（使用者腳本）**，需要搭配 [Violentmonkey](https://violentmonkey.github.io/)、[Tampermonkey](https://www.tampermonkey.net/) 等 userscript 管理器使用。
+
+安裝後，只要在網頁上的**純文字網址直接雙擊**，就能開啟網址；不會把整個網頁的文字改寫成超連結，也不會在背景持續掃描整個頁面。
+
+> 🧪 **想先看看它怎麼運作？** [開啟公開測試頁 v1.2（166 個測試案例）](https://rucifa.github.io/plain-text-url-opener/?v=1.2)
 
 ---
 
@@ -200,40 +199,42 @@ Plain Text URL Opener 的設計與測試方法曾參考上述兩個相關專案�
 
 ## 版本與測試
 
-目前正式版本：**v1.0.5**
+目前正式版本：**v1.0.6**
 
-v1.0.5 強化了省略 `http://` / `https://` 的國際化網域辨識、檔名與網域尾碼判斷、長文字中的網址邊界處理，也修復了網址緊接多語系文字時可能辨識失敗的問題。
+v1.0.6 主要針對穩定性、安全邊界與極端效能進行強化：修正跨文字節點時可能誤開啟截斷網址、不支援 outer scheme 搭配 `ttps://` 的繞過、超長 TextNode 的重複解析成本，以及 DOM ownership／reinjection 衝突問題。
 
 ### 這個版本有沒有完整測過？
 
-有。目前的**公開測試頁 v1.1 有 160 個固定測試案例**，涵蓋一般網址、國際化網域、中文與其他 Unicode 文字、標點符號、長文字、安全性邊界，以及過去曾經發生過的錯誤。
+有。目前的**公開測試頁 v1.2 有 166 個固定測試案例**，涵蓋一般網址、國際化網域、中文與其他 Unicode 文字、標點符號、長文字、安全性邊界，以及過去曾經發生過的錯誤。
 
-v1.0.5 已通過完整自動測試與實際 Chromium 瀏覽器操作測試。
+v1.0.6 已通過完整自動測試與實際 Chromium 瀏覽器操作測試。
 
-- [開啟公開測試頁](https://rucifa.github.io/plain-text-url-opener/)
-- [查看 v1.0.5 版本測試報告](./tests/acceptance/v1.0.5.md)
+- [開啟公開測試頁 v1.2](https://rucifa.github.io/plain-text-url-opener/?v=1.2)
+- [查看 v1.0.6 版本測試報告](./tests/acceptance/v1.0.6.md)
 - [查看版本變更紀錄](./CHANGELOG.md)
 
 <details>
 <summary>查看較技術性的測試資料</summary>
 
-- URL 解析測試：**150 / 150 PASS**
-- Chromium 瀏覽器實際操作：**162 / 162 PASS**
+- URL 解析測試：**151 / 151 PASS**
+- Chromium 瀏覽器實際操作：**168 / 168 PASS**
 - 不支援協定的安全性測試：**10 / 10 PASS**
-- 隨機差異測試：**10,000 cases，0 個非預期差異**
-- 效能回歸檢查：**PASS**
+- v1.0.5 → v1.0.6 解析差異測試：**100,000 cases，0 個非預期差異**
+- 隨機 fuzz 測試：**100,000 cases，0 crashes**
+- 長文字快取與 Cross-TextNode 長尾效能檢查：**PASS**
+- P0 / P1 關閉檢查：**無 high／medium severity finding**
 
-完整細節請見 [v1.0.5 版本測試報告](./tests/acceptance/v1.0.5.md)。
+完整細節請見 [v1.0.6 版本測試報告](./tests/acceptance/v1.0.6.md)。
 
 </details>
 
 ### 公開測試頁
 
-Repo 根目錄的 [`index.html`](./index.html) 是固定的**公開測試頁 v1.1**。它用來定義「每種文字應不應該被辨識成網址、應該得到什麼結果」。
+Repo 根目錄的 [`index.html`](./index.html) 是固定的**公開測試頁 v1.2**，共有 **166 個固定測試案例**。它用來定義「每種文字應不應該被辨識成網址、應該得到什麼結果」。
 
 測試頁的預期結果獨立於目前腳本版本：如果新版腳本做錯了，應該修正腳本，而不是為了讓新版通過就改掉測試答案。
 
-**Live 測試頁：** https://rucifa.github.io/plain-text-url-opener/
+**Live 測試頁：** https://rucifa.github.io/plain-text-url-opener/?v=1.2
 
 ---
 

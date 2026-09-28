@@ -4,16 +4,15 @@
 
 **Double-click plain-text URLs to open them.**
 
-Plain Text URL Opener is a **userscript**. It requires a userscript manager such as
-[Violentmonkey](https://violentmonkey.github.io/) or [Tampermonkey](https://www.tampermonkey.net/).
-
-Once installed, double-click a plain-text URL on a webpage to open it. The script does not rewrite the whole page into links or continuously scan the page in the background.
-
-**[Open the test page](https://rucifa.github.io/plain-text-url-opener/)**
-
 [繁體中文](./README.md) · **English**
 
 </div>
+
+Plain Text URL Opener is a **userscript**. It requires a userscript manager such as [Violentmonkey](https://violentmonkey.github.io/) or [Tampermonkey](https://www.tampermonkey.net/).
+
+Once installed, double-click a **plain-text URL** on a webpage to open it. The script does not rewrite the whole page into links or continuously scan the page in the background.
+
+> 🧪 **Want to see how it works first?** [Open public test page v1.2 (166 fixed cases)](https://rucifa.github.io/plain-text-url-opener/?v=1.2)
 
 ---
 
@@ -198,40 +197,42 @@ The goal is not to replace full-featured linkifiers. It is to make the “double
 
 ## Version and testing
 
-Current stable version: **v1.0.5**
+Current stable version: **v1.0.6**
 
-v1.0.5 improves scheme-less internationalized-domain handling, filename / TLD discrimination, URL boundaries in long text, and restores expected behavior when a domain is immediately followed by non-Latin prose.
+v1.0.6 is a hardening release focused on stability, security boundaries, and worst-case performance. It fixes truncated-prefix opening around Cross-TextNode boundaries, unsupported outer-scheme + `ttps://` bypasses, repeated parsing costs in very long TextNodes, and DOM ownership / reinjection collision issues.
 
 ### Has this version been thoroughly tested?
 
-Yes. The current **public test page v1.1 contains 160 fixed test cases** covering ordinary URLs, internationalized domains, Unicode text, punctuation, long text, security boundaries, and historical regressions.
+Yes. The current **public test page v1.2 contains 166 fixed test cases** covering ordinary URLs, internationalized domains, Unicode text, punctuation, long text, security boundaries, and historical regressions.
 
-v1.0.5 passed the complete automated suite and real Chromium interaction testing.
+v1.0.6 passed the complete automated suite and real Chromium interaction testing.
 
-- [Open the public test page](https://rucifa.github.io/plain-text-url-opener/)
-- [Read the v1.0.5 test report](./tests/acceptance/v1.0.5.md)
+- [Open public test page v1.2](https://rucifa.github.io/plain-text-url-opener/?v=1.2)
+- [Read the v1.0.6 test report](./tests/acceptance/v1.0.6.md)
 - [Read the changelog](./CHANGELOG.md)
 
 <details>
 <summary>Show technical test results</summary>
 
-- URL parser checks: **150 / 150 PASS**
-- Real Chromium interaction checks: **162 / 162 PASS**
+- URL parser checks: **151 / 151 PASS**
+- Real Chromium interaction checks: **168 / 168 PASS**
 - Unsupported-scheme security probes: **10 / 10 PASS**
-- Differential fuzzing: **10,000 cases, 0 unexpected differences**
-- Performance regression gate: **PASS**
+- v1.0.5 → v1.0.6 parser differential: **100,000 cases, 0 unexpected differences**
+- Randomized fuzzing: **100,000 cases, 0 crashes**
+- Long-text cache and Cross-TextNode long-tail performance gates: **PASS**
+- P0 / P1 closure: **no high- or medium-severity findings**
 
-See the [v1.0.5 test report](./tests/acceptance/v1.0.5.md) for full details.
+See the [v1.0.6 test report](./tests/acceptance/v1.0.6.md) for full details.
 
 </details>
 
 ### Public test page
 
-The repository root [`index.html`](./index.html) is the fixed **public test page v1.1**. It defines whether each sample should be recognized as a URL and what result is expected.
+The repository root [`index.html`](./index.html) is the fixed **public test page v1.2**, containing **166 fixed test cases**. It defines whether each sample should be recognized as a URL and what result is expected.
 
 The expected results are independent of the current userscript implementation. If a new script version violates an unchanged expectation, the script should be fixed rather than rewriting the expected result merely to make the release pass.
 
-**Live test page:** https://rucifa.github.io/plain-text-url-opener/
+**Live test page:** https://rucifa.github.io/plain-text-url-opener/?v=1.2
 
 ---
 
