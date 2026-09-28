@@ -6,6 +6,22 @@ Plain Text URL Opener 的重要發布變更皆記錄於此。
 
 Regression Fixture 有自己獨立的版本線，不應僅為了讓某個 userscript 版本通過測試而修改。
 
+## [1.0.12] - 2026-09-28
+
+### Defanged URL 明確解鎖
+
+- 普通雙擊仍對 Defanged URL fail closed；新增 `Ctrl + Shift + 雙擊` 作為明確人工解鎖手勢，只解除 `defanged` block。
+- 解鎖後會把修復後的網址重新送入一般 HTTP(S) normalization／安全驗證，不會把 modifier 當成萬用強制開啟；User Info 等既有警示仍保留。
+- Override 的開啟模式與普通雙擊相同；手勢中的 `Shift` 不會額外觸發原本的「反轉分頁模式」。
+- 補上 Firefox 對含 `Ctrl` 的原生雙擊可能產生 multi-range selection 的相容處理；fallback 只在滑鼠位置重新確認為 blocked Defanged URL 時生效，維持 lazy parsing、same-TextNode 與 fail-closed 邊界。
+
+### 驗證
+
+- Regression Fixture 維持 **v1.4 / 176 cases / 178 interactions**；Implementation 階段既有 expected result **0 個修改**。
+- Chromium 140：**178 / 178 PASS**；Firefox 141：**178 / 178 PASS**，皆以 native double-click interaction 完整重跑。
+- Opener isolation fail-closed、10,000,000 字 same-node tail 與 10,000-node sibling subtree boundedness gates 皆 PASS。
+- Modifier security probes 在 Chromium／Firefox 皆 PASS：`Ctrl + Shift + Alt` 不會解鎖，且 `javascript:`、`data:`、`file:`、`ftp:`、`mailto:` 外層即使搭配 `Ctrl + Shift` 仍不會開啟。
+
 ## [1.0.11] - 2026-09-28
 
 ### 效能與安全強化

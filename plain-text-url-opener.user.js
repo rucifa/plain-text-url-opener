@@ -2,7 +2,7 @@
 // @name         Plain Text URL Opener
 // @name:zh-TW   純文字網址雙擊開啟器
 // @namespace    https://github.com/rucifa/plain-text-url-opener
-// @version      1.0.11
+// @version      1.0.12
 // @description  Double-click plain-text HTTP(S) URLs to open them. Lightweight, no DOM linkification, no full-page scanning, no settings required.
 // @description:zh-TW 雙擊開啟網頁中的純文字 HTTP(S) 網址。輕量、不改寫正文 DOM、不進行背景全頁掃描，也不需要設定介面。
 // @match        http://*/*
@@ -309,7 +309,7 @@
 
     const instance = {
         owner: 'Plain Text URL Opener',
-        version: '1.0.11',
+        version: '1.0.12',
         controller,
         cleanup
     };
@@ -2662,31 +2662,76 @@
             const nativeRange =
                 selection.getRangeAt(0);
 
+            let textNode = null;
+            let detected = null;
+
             /*
              * Lightweight rule:
              * complete URL must remain inside one TextNode.
+             *
+             * Firefox may create a multi-range / cross-container selection
+             * when Ctrl participates in a double-click. For the explicit
+             * Defanged-URL gesture only, recover the clicked TextNode from
+             * the pointer position and keep the same lazy, same-node parser.
              */
             if (
-                nativeRange.startContainer.nodeType !==
-                    Node.TEXT_NODE ||
-                nativeRange.startContainer !==
+                nativeRange.startContainer.nodeType ===
+                    Node.TEXT_NODE &&
+                nativeRange.startContainer ===
                     nativeRange.endContainer
             ) {
+                textNode = nativeRange.startContainer;
+
+                if (isIgnoredElement(textNode.parentElement)) {
+                    return;
+                }
+
+                detected = findURLOverRange(
+                    textNode,
+                    nativeRange.startOffset,
+                    nativeRange.endOffset
+                );
+            }
+            else if (
+                event.ctrlKey &&
+                !event.altKey
+            ) {
+                const caret = getCaretFromPoint(
+                    event.clientX,
+                    event.clientY
+                );
+
+                const point = resolveTextPoint(
+                    caret?.node,
+                    caret?.offset ?? 0
+                );
+
+                if (
+                    !point ||
+                    isIgnoredElement(point.node.parentElement)
+                ) {
+                    return;
+                }
+
+                const pointDetected = findURLAtOffset(
+                    point.node,
+                    point.offset
+                );
+
+                if (
+                    !pointDetected ||
+                    !pointDetected.blocked ||
+                    pointDetected.reason !== 'defanged'
+                ) {
+                    return;
+                }
+
+                textNode = point.node;
+                detected = pointDetected;
+            }
+            else {
                 return;
             }
-
-            const textNode =
-                nativeRange.startContainer;
-
-            if (isIgnoredElement(textNode.parentElement)) {
-                return;
-            }
-
-            const detected = findURLOverRange(
-                textNode,
-                nativeRange.startOffset,
-                nativeRange.endOffset
-            );
 
             if (
                 detected &&
@@ -2738,14 +2783,46 @@
             // Defanged URL
             // --------------------------------------------------------
 
+            let openingCandidate = detected;
+            let defangedOverride = false;
+
             if (detected.blocked) {
-                showFeedback(
-                    range,
-                    '⚠ Defanged URL blocked — not opened automatically',
-                    true
+                defangedOverride = Boolean(
+                    detected.reason === 'defanged' &&
+                    event.ctrlKey &&
+                    event.shiftKey &&
+                    !event.altKey
                 );
 
-                return;
+                if (!defangedOverride) {
+                    showFeedback(
+                        range,
+                        '⚠ Defanged URL blocked — not opened automatically',
+                        true
+                    );
+
+                    return;
+                }
+
+                const revalidated = normalizeURL(
+                    detected.url,
+                    'scheme'
+                );
+
+                if (
+                    !revalidated ||
+                    revalidated.blocked
+                ) {
+                    showFeedback(
+                        range,
+                        '⚠ Defanged URL override failed validation',
+                        true
+                    );
+
+                    return;
+                }
+
+                openingCandidate = revalidated;
             }
 
             // --------------------------------------------------------
@@ -2773,14 +2850,15 @@
 
             if (
                 CONFIG.shiftReversesOpenMode &&
-                event.shiftKey
+                event.shiftKey &&
+                !defangedOverride
             ) {
                 newTab = !newTab;
             }
 
             if (!newTab) {
                 location.assign(
-                    detected.url
+                    openingCandidate.url
                 );
 
                 return;
@@ -2792,7 +2870,7 @@
 
             if (
                 !openNewTabSafely(
-                    detected.url
+                    openingCandidate.url
                 )
             ) {
                 showFeedback(
@@ -2809,16 +2887,16 @@
                 document.hasFocus()
             ) {
                 const warning = Boolean(
-                    detected.userInfo ||
-                    detected.idn
+                    openingCandidate.userInfo ||
+                    openingCandidate.idn
                 );
 
                 const message =
-                    detected.userInfo
-                        ? `⚠ URL with User Info opened → ${detected.url}`
-                        : detected.idn
-                            ? `⚠ IDN URL opened → ${detected.url}`
-                            : `Opened → ${detected.url}`;
+                    openingCandidate.userInfo
+                        ? `⚠ URL with User Info opened → ${openingCandidate.url}`
+                        : openingCandidate.idn
+                            ? `⚠ IDN URL opened → ${openingCandidate.url}`
+                            : `Opened → ${openingCandidate.url}`;
 
                 showFeedback(
                     range,
@@ -2864,6 +2942,6 @@
     cleanupLegacyUI();
 
     log(
-        'Plain Text URL Opener v1.0.11 Stable loaded'
+        'Plain Text URL Opener v1.0.12 Stable loaded'
     );
 })();

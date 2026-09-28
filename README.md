@@ -58,7 +58,7 @@ Plain Text URL Opener 解決的情境很單純：有些網頁、論壇、文件�
 - ✅ `Alt + 雙擊`：只選取完整網址，不開啟
 - ✅ 支援一般 `http://` / `https://`、`www.`、常見裸網域、IDN 與 Unicode 路徑／查詢字串
 - ✅ 既有 `<a href>`、按鈕、輸入框、文字區域與可編輯內容會被忽略
-- ✅ 可辨識 defanged URL，但**不會自動開啟**
+- ✅ 可辨識 defanged URL；普通雙擊維持封鎖，`Ctrl + Shift + 雙擊` 可在重新驗證後明確開啟
 - ✅ `@grant none`，不需要設定介面
 - ✅ 不使用背景全頁掃描，也不會把正文網址改寫成 `<a>`
 
@@ -68,6 +68,7 @@ Plain Text URL Opener 解決的情境很單純：有些網頁、論壇、文件�
 |---|---|
 | 雙擊 | 在新分頁開啟偵測到的網址 |
 | `Shift + 雙擊` | 在目前分頁開啟 |
+| `Ctrl + Shift + 雙擊`（Defanged URL） | 明確解除 Defanged block，重新驗證後以普通雙擊的模式開啟 |
 | `Alt + 雙擊` | 選取完整網址，不開啟 |
 
 ### 範例
@@ -82,7 +83,7 @@ Plain Text URL Opener 解決的情境很單純：有些網頁、論壇、文件�
 | `https://example.com/a).` | 排除句尾多餘的 `).` 後開啟 |
 | `https://example.com/a)?15fdsa` | `)` 位於網址內容中時完整保留 |
 | `https://shop.example.com/item?id=123&utm_source=test#reviews` | 保留 query 與 fragment |
-| `hxxps://example.com` | 可辨識，但不自動開啟 |
+| `hxxps://example.com` | 普通雙擊不開啟；`Ctrl + Shift + 雙擊` 可明確解鎖並重新驗證 |
 
 ---
 
@@ -99,7 +100,7 @@ Plain Text URL Opener 解決的情境很單純：有些網頁、論壇、文件�
 - 含中文等 Unicode 文字的 path、query 與 `#` fragment
 - 常見標點與括號邊界
 - 部分缺少開頭 `h` 的 `ttp://` / `ttps://`
-- 安全化／去活化網址（例如 `hxxps://`）可辨識，但不會自動開啟
+- 安全化／去活化網址（例如 `hxxps://`）可辨識；普通雙擊維持封鎖，`Ctrl + Shift + 雙擊` 可明確解鎖後重新驗證
 - 同一段文字中存在多個網址
 
 ### ⛔ 刻意不支援 / 保守處理
@@ -146,19 +147,19 @@ Plain Text URL Opener 專注於：
 
 ## 版本與驗證
 
-目前 Stable runtime：**Plain Text URL Opener v1.0.11**；最新 Regression Fixture：**v1.4**。
+目前 Stable runtime：**Plain Text URL Opener v1.0.12**；最新 Regression Fixture：**v1.4**。
 
 | 項目 | 狀態 |
 |---|---|
-| Stable version | **v1.0.11** |
+| Stable version | **v1.0.12** |
 | Regression Fixture | **v1.4 / 176 cases** |
-| Chromium 實際瀏覽器互動（v1.0.11 + Fixture v1.3） | **171 / 171 PASS** |
-| Firefox 實際瀏覽器互動（v1.0.11 + Fixture v1.3） | **171 / 171 PASS** |
+| Chromium 實際瀏覽器互動（v1.0.12 + Fixture v1.4） | **178 / 178 PASS** |
+| Firefox 實際瀏覽器互動（v1.0.12 + Fixture v1.4） | **178 / 178 PASS** |
 | Userscript 實裝 / 圖示驗證 | **Firefox + Violentmonkey、Chromium 系 + Violentmonkey** |
 
-> Fixture v1.4 包含 **176 個 testcase / 178 個預期 interaction**。它完整保留 v1.3 的 169 個既有 testcase 與 expected result，新增 7 個 Defanged URL override interaction 規格。`Ctrl + Shift + 雙擊` 只負責明確解除 Defanged block；**實際開啟方式沿用普通雙擊原本的模式**，因此 override 手勢中的 `Shift` 不觸發「反轉分頁模式」。目前普通雙擊預設為新分頁，所以未來實作完成後 override 也應開新分頁。Stable v1.0.11 的完整實際瀏覽器驗證仍是 Fixture v1.3 的 **171 / 171 PASS**；v1.4 新增的 5 個正向 override interaction 目前是下一階段 Implementation 的預期 FAIL target，不宣稱已由 v1.0.11 通過。
+> Fixture v1.4 包含 **176 個 testcase / 178 個預期 interaction**。它完整保留 v1.3 的 169 個既有 testcase 與 expected result，新增 7 個 Defanged URL override interaction 規格。普通雙擊仍對 Defanged URL fail closed；`Ctrl + Shift + 雙擊` 只解除 Defanged block，修復後重新走一般 HTTP(S)／安全驗證，且開啟模式與普通雙擊相同。v1.0.12 已在 Chromium 140 與 Firefox 141 完整通過 **178 / 178** 實際瀏覽器互動。
 
-Fixture v1.3 已在 Chromium 140 與 Firefox 141 以 native mouse interaction 驗證；userscript 實裝與圖示顯示另已在 Firefox + Violentmonkey 與 Chromium 系瀏覽器 + Violentmonkey 確認。Fixture v1.4 的規格與 Reproduce 證據請參閱 `tests/acceptance/fixture-v1.4.md`。
+Fixture v1.4 已在 Chromium 140 與 Firefox 141 以 native mouse interaction 完整驗證；userscript 實裝與圖示顯示另已在 Firefox + Violentmonkey 與 Chromium 系瀏覽器 + Violentmonkey 確認。完整 v1.0.12 驗證證據請參閱 `tests/acceptance/v1.0.12.md`。
 
 後續只有在發現新的實際邊界、回歸風險或明確規格需求時才新增 testcase；**不以增加案例數本身為目標**。
 

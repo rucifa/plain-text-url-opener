@@ -19,6 +19,7 @@ The fixture defines expected behavior. It is intentionally independent from user
 
 ### Current release evidence
 
+- `acceptance/v1.0.12.md` — Defanged URL explicit override implementation, Firefox Ctrl-double-click compatibility, full Fixture v1.4 cross-browser regression, and modifier security probes.
 - `acceptance/v1.0.11.md` — bounded Cross-TextNode safety / popup isolation hardening acceptance with fresh Chromium 140 + Firefox 141 full-fixture validation.
 - `acceptance/v1.0.10.md` — icon compression / metadata-only release acceptance, including exact-byte identity and cross-browser userscript-manager rendering checks.
 - `acceptance/v1.0.9.md` — Chromium + Firefox integration, security, iframe, SPA, Shadow DOM, editable-control, reinjection, and bounded-performance smoke audit.
@@ -34,6 +35,6 @@ A future regression should therefore be handled as follows:
 
 ## Current fixture scope
 
-Fixture v1.4 contains 176 cases across 20 sections and defines 178 expected browser interactions. It preserves all 169 Fixture v1.3 cases and expected results unchanged, then adds seven Defanged URL interaction specifications: four supported defang syntaxes under Ctrl + Shift + double-click, one User Info revalidation case, and two single-modifier negative controls. Stable v1.0.11 is expected to fail the five positive override interactions until the corresponding Implementation change is made.
+Fixture v1.4 contains 176 cases across 20 sections and defines 178 expected browser interactions. It preserves all 169 Fixture v1.3 cases and expected results unchanged, then adds seven Defanged URL interaction specifications: four supported defang syntaxes under Ctrl + Shift + double-click, one User Info revalidation case, and two single-modifier negative controls. v1.0.12 implements the specified override and passes all 178 expected interactions on Chromium 140 and Firefox 141 while leaving the Fixture expectations unchanged.
 
 Parser fuzzing, lifecycle/reinjection, popup safety, opener isolation, and detailed performance measurements remain separate automated acceptance layers rather than browser-fixture content.

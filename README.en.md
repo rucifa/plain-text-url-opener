@@ -56,7 +56,7 @@ Plain Text URL Opener solves a simple problem: some webpages, forums, documents,
 - ✅ `Alt + double-click`: select the full URL without opening it
 - ✅ Supports ordinary `http://` / `https://`, `www.`, conservative bare domains, IDNs, and Unicode paths / queries
 - ✅ Ignores existing `<a href>` links, buttons, form controls, and editable content
-- ✅ Detects defanged URLs but **does not automatically open them**
+- ✅ Detects defanged URLs; ordinary double-click stays blocked, while `Ctrl + Shift + double-click` explicitly unlocks them for revalidation
 - ✅ `@grant none` and no settings UI
 - ✅ No background full-page scanning and no DOM linkification
 
@@ -66,6 +66,7 @@ Plain Text URL Opener solves a simple problem: some webpages, forums, documents,
 |---|---|
 | Double-click | Open the detected URL in a new tab |
 | `Shift + double-click` | Open in the current tab |
+| `Ctrl + Shift + double-click` (Defanged URL) | Explicitly lift the Defanged block, revalidate, then use the ordinary double-click open mode |
 | `Alt + double-click` | Select the full URL without opening it |
 
 ### Examples
@@ -80,7 +81,7 @@ Plain Text URL Opener solves a simple problem: some webpages, forums, documents,
 | `https://example.com/a).` | Extra trailing `).` is excluded |
 | `https://example.com/a)?15fdsa` | `)` is preserved when it remains part of the URL |
 | `https://shop.example.com/item?id=123&utm_source=test#reviews` | Query and fragment are preserved |
-| `hxxps://example.com` | Detected, but not automatically opened |
+| `hxxps://example.com` | Ordinary double-click stays blocked; `Ctrl + Shift + double-click` explicitly unlocks and revalidates it |
 
 ---
 
@@ -97,7 +98,7 @@ Plain Text URL Opener solves a simple problem: some webpages, forums, documents,
 - Unicode path / query / fragment
 - Common punctuation and bracket boundaries
 - Some missing-leading-`h` forms such as `ttp://` / `ttps://`
-- Defanged URL detection without automatic opening
+- Defanged URL detection with fail-closed ordinary double-click and explicit `Ctrl + Shift + double-click` unlock + revalidation
 - Multiple URLs inside one TextNode
 
 ### ⛔ Intentionally unsupported / conservative
@@ -144,19 +145,19 @@ This project's design and testing approach were informed by the public documenta
 
 ## Version and validation
 
-Current Stable runtime: **Plain Text URL Opener v1.0.11**; latest Regression Fixture: **v1.4**.
+Current Stable runtime: **Plain Text URL Opener v1.0.12**; latest Regression Fixture: **v1.4**.
 
 | Item | Status |
 |---|---|
-| Stable version | **v1.0.11** |
+| Stable version | **v1.0.12** |
 | Regression Fixture | **v1.4 / 176 cases** |
-| Chromium real-browser interaction (v1.0.11 + Fixture v1.3) | **171 / 171 PASS** |
-| Firefox real-browser interaction (v1.0.11 + Fixture v1.3) | **171 / 171 PASS** |
+| Chromium real-browser interaction (v1.0.12 + Fixture v1.4) | **178 / 178 PASS** |
+| Firefox real-browser interaction (v1.0.12 + Fixture v1.4) | **178 / 178 PASS** |
 | Userscript installation / icon rendering | **Firefox + Violentmonkey, Chromium family + Violentmonkey** |
 
-> Fixture v1.4 contains **176 testcases / 178 expected interactions**. It preserves all 169 Fixture v1.3 testcases and expected results unchanged, and adds seven Defanged URL override interaction specifications. `Ctrl + Shift + double-click` only provides explicit authorization to lift the Defanged block; **the actual open mode must remain the same as ordinary double-click**, so the `Shift` inside the override chord does not trigger the normal open-mode reversal. Ordinary double-click currently defaults to a new tab, so the future override implementation should also open a new tab. Stable v1.0.11's complete real-browser acceptance remains Fixture v1.3 at **171 / 171 PASS**; the five new positive override interactions in v1.4 are intentional expected-failure targets for the next Implementation phase and are not claimed as passing on v1.0.11.
+> Fixture v1.4 contains **176 testcases / 178 expected interactions**. It preserves all 169 Fixture v1.3 testcases and expected results unchanged and adds seven Defanged URL override interaction specifications. Ordinary double-click remains fail closed for Defanged URLs; `Ctrl + Shift + double-click` lifts only the Defanged block, reruns normal HTTP(S) / safety validation, and uses the same open mode as ordinary double-click. v1.0.12 passes the complete **178 / 178** real-browser interaction suite on both Chromium 140 and Firefox 141.
 
-Fixture v1.3 was validated with native mouse interaction on Chromium 140 and Firefox 141. Userscript installation and icon rendering were separately confirmed on Firefox + Violentmonkey and Chromium-family browsers + Violentmonkey. See `tests/acceptance/fixture-v1.4.md` for the Fixture v1.4 specification and Reproduce evidence.
+Fixture v1.4 was fully validated with native mouse interaction on Chromium 140 and Firefox 141. Userscript installation and icon rendering were separately confirmed on Firefox + Violentmonkey and Chromium-family browsers + Violentmonkey. See `tests/acceptance/v1.0.12.md` for the complete v1.0.12 validation evidence.
 
 Future testcases are added only when a new real-world boundary, regression risk, or explicit specification need is identified; **the project does not increase Fixture size merely to increase the case count**.
 

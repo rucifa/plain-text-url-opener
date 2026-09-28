@@ -6,6 +6,22 @@ All notable release changes to Plain Text URL Opener are documented here.
 
 The Regression Fixture has its own version line and should not be changed merely to make a userscript release pass.
 
+## [1.0.12] - 2026-09-28
+
+### Explicit Defanged URL override
+
+- Ordinary double-click remains fail closed for Defanged URLs; `Ctrl + Shift + double-click` is now an explicit user gesture that lifts only the `defanged` block.
+- After override, the restored URL is sent back through normal HTTP(S) normalization / safety validation. The modifier chord is not a generic force-open mechanism, and existing warnings such as User Info remain intact.
+- The override uses the same open mode as ordinary double-click; the `Shift` inside the override chord does not also trigger the normal open-mode reversal.
+- Add Firefox compatibility for native Ctrl-modified double-clicks that can produce multi-range selections. The fallback activates only when the pointer position resolves back to a blocked Defanged URL, preserving lazy parsing, same-TextNode scope, and fail-closed behavior.
+
+### Validation
+
+- Regression Fixture remains **v1.4 / 176 cases / 178 interactions** with **zero existing expected-result changes** during the Implementation phase.
+- Chromium 140: **178 / 178 PASS**; Firefox 141: **178 / 178 PASS**, both rerun with native double-click interaction.
+- Opener-isolation fail-closed, 10,000,000-character same-node-tail, and 10,000-node sibling-subtree boundedness gates all PASS.
+- Modifier security probes PASS on Chromium and Firefox: `Ctrl + Shift + Alt` does not unlock, and `javascript:`, `data:`, `file:`, `ftp:`, and `mailto:` outer schemes remain non-navigable even with `Ctrl + Shift`.
+
 ## [1.0.11] - 2026-09-28
 
 ### Performance and security hardening
