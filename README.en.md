@@ -144,23 +144,23 @@ This project's design and testing approach were informed by the public documenta
 
 ## Version and validation
 
-Current Stable baseline: **Plain Text URL Opener v1.0.11 + Regression Fixture v1.3**.
+Current Stable runtime: **Plain Text URL Opener v1.0.11**; latest Regression Fixture: **v1.4**.
 
 | Item | Status |
 |---|---|
 | Stable version | **v1.0.11** |
-| Regression Fixture | **v1.3 / 169 cases** |
-| Chromium real-browser interaction | **171 / 171 PASS** |
-| Firefox real-browser interaction | **171 / 171 PASS** |
+| Regression Fixture | **v1.4 / 176 cases** |
+| Chromium real-browser interaction (v1.0.11 + Fixture v1.3) | **171 / 171 PASS** |
+| Firefox real-browser interaction (v1.0.11 + Fixture v1.3) | **171 / 171 PASS** |
 | Userscript installation / icon rendering | **Firefox + Violentmonkey, Chromium family + Violentmonkey** |
 
-> Fixture v1.3 contains **169 testcases**. Two of those testcases contain two independently actionable URLs, so the complete real-browser run performs **171 interactions**.
+> Fixture v1.4 contains **176 testcases / 178 expected interactions**. It preserves all 169 Fixture v1.3 testcases and expected results unchanged, and adds seven Defanged URL override interaction specifications. Stable v1.0.11's complete real-browser acceptance remains Fixture v1.3 at **171 / 171 PASS**; the five new positive override interactions in v1.4 are intentional expected-failure targets for the next Implementation phase and are not claimed as passing on v1.0.11.
 
-The full Fixture was validated with native mouse interaction on Chromium 140 and Firefox 141. Userscript installation and icon rendering were separately confirmed on Firefox + Violentmonkey and Chromium-family browsers + Violentmonkey. This does not claim exhaustive validation of every browser × userscript-manager combination.
+Fixture v1.3 was validated with native mouse interaction on Chromium 140 and Firefox 141. Userscript installation and icon rendering were separately confirmed on Firefox + Violentmonkey and Chromium-family browsers + Violentmonkey. See `tests/acceptance/fixture-v1.4.md` for the Fixture v1.4 specification and Reproduce evidence.
 
 Future testcases are added only when a new real-world boundary, regression risk, or explicit specification need is identified; **the project does not increase Fixture size merely to increase the case count**.
 
-For detailed release history, see the [CHANGELOG](./CHANGELOG.en.md) and [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases). For complete validation evidence, see the [Acceptance Reports](./tests/acceptance/), or open the [public Regression Fixture v1.3](https://rucifa.github.io/plain-text-url-opener/?v=1.3).
+For detailed release history, see the [CHANGELOG](./CHANGELOG.en.md) and [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases). For complete validation evidence, see the [Acceptance Reports](./tests/acceptance/), or open the [public Regression Fixture v1.4](https://rucifa.github.io/plain-text-url-opener/?v=1.4).
 
 ---
 

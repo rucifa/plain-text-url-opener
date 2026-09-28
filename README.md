@@ -146,23 +146,23 @@ Plain Text URL Opener 專注於：
 
 ## 版本與驗證
 
-目前 Stable baseline：**Plain Text URL Opener v1.0.11 + Regression Fixture v1.3**。
+目前 Stable runtime：**Plain Text URL Opener v1.0.11**；最新 Regression Fixture：**v1.4**。
 
 | 項目 | 狀態 |
 |---|---|
 | Stable version | **v1.0.11** |
-| Regression Fixture | **v1.3 / 169 cases** |
-| Chromium 實際瀏覽器互動 | **171 / 171 PASS** |
-| Firefox 實際瀏覽器互動 | **171 / 171 PASS** |
+| Regression Fixture | **v1.4 / 176 cases** |
+| Chromium 實際瀏覽器互動（v1.0.11 + Fixture v1.3） | **171 / 171 PASS** |
+| Firefox 實際瀏覽器互動（v1.0.11 + Fixture v1.3） | **171 / 171 PASS** |
 | Userscript 實裝 / 圖示驗證 | **Firefox + Violentmonkey、Chromium 系 + Violentmonkey** |
 
-> Fixture v1.3 包含 **169 個 testcase**；其中 2 個 testcase 各包含 2 個可操作網址，因此完整實際瀏覽器驗證共執行 **171 次 interaction**。
+> Fixture v1.4 包含 **176 個 testcase / 178 個預期 interaction**。它完整保留 v1.3 的 169 個既有 testcase 與 expected result，新增 7 個 Defanged URL override interaction 規格。Stable v1.0.11 的完整實際瀏覽器驗證仍是 Fixture v1.3 的 **171 / 171 PASS**；v1.4 新增的 5 個正向 override interaction 目前是下一階段 Implementation 的預期 FAIL target，不宣稱已由 v1.0.11 通過。
 
-完整 Fixture 已在 Chromium 140 與 Firefox 141 以 native mouse interaction 驗證；userscript 實裝與圖示顯示另已在 Firefox + Violentmonkey 與 Chromium 系瀏覽器 + Violentmonkey 確認。這不代表所有「瀏覽器 × userscript manager」組合都已完成完整驗證。
+Fixture v1.3 已在 Chromium 140 與 Firefox 141 以 native mouse interaction 驗證；userscript 實裝與圖示顯示另已在 Firefox + Violentmonkey 與 Chromium 系瀏覽器 + Violentmonkey 確認。Fixture v1.4 的規格與 Reproduce 證據請參閱 `tests/acceptance/fixture-v1.4.md`。
 
 後續只有在發現新的實際邊界、回歸風險或明確規格需求時才新增 testcase；**不以增加案例數本身為目標**。
 
-詳細版本變更請參閱 [CHANGELOG](./CHANGELOG.md) 與 [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases)。完整測試證據請參閱 [Acceptance Reports](./tests/acceptance/)；也可以直接開啟 [公開 Regression Fixture v1.3](https://rucifa.github.io/plain-text-url-opener/?v=1.3)。
+詳細版本變更請參閱 [CHANGELOG](./CHANGELOG.md) 與 [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases)。完整測試證據請參閱 [Acceptance Reports](./tests/acceptance/)；也可以直接開啟 [公開 Regression Fixture v1.4](https://rucifa.github.io/plain-text-url-opener/?v=1.4)。
 
 ---
 
