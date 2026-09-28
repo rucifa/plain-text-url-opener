@@ -197,7 +197,9 @@ The goal is not to replace full-featured linkifiers. It is to make the “double
 
 ## Version and testing
 
-Current stable version: **v1.0.7**
+Current stable version: **v1.0.8**
+
+v1.0.8 improves cross-browser icon compatibility by embedding the official 64×64 PNG directly in userscript `@icon` metadata, avoiding the remote image fetch / conversion path; URL detection, DOM behavior, navigation, security boundaries, and performance logic are unchanged.
 
 v1.0.7 is a metadata / branding-only release. It adds the official icon and standard userscript `@icon` metadata; URL detection, DOM behavior, navigation, security boundaries, and performance logic are unchanged from v1.0.6.
 
@@ -207,7 +209,7 @@ v1.0.6 is a hardening release focused on stability, security boundaries, and wor
 
 Yes. The current **public test page v1.2 contains 166 fixed test cases** covering ordinary URLs, internationalized domains, Unicode text, punctuation, long text, security boundaries, and historical regressions.
 
-v1.0.7 does not change runtime behavior, so behavioral validation is inherited from the fully accepted v1.0.6 implementation. v1.0.6 passed the complete automated suite and real Chromium interaction testing.
+v1.0.8 does not change runtime behavior, so behavioral validation is inherited from the fully accepted v1.0.6 implementation. v1.0.6 passed the complete automated suite and real Chromium interaction testing.
 
 - [Open public test page v1.2](https://rucifa.github.io/plain-text-url-opener/?v=1.2)
 - [Read the v1.0.6 test report](./tests/acceptance/v1.0.6.md)
