@@ -4,6 +4,38 @@ All notable release changes to Plain Text URL Opener are documented here.
 
 The Regression Fixture has its own version line and should not be changed merely to make a userscript release pass.
 
+## [1.0.6] - 2026-09-28
+
+### Fixed
+
+- Bound the non-Latin adjacency parser path so pathological 8 KB scheme-less tokens no longer trigger thousands of repeated URL / TLD validations on the main thread.
+- Block unsupported outer schemes from rescuing nested missing-h forms such as `javascript:ttps://example.com/x`.
+- Suppress additional Cross-TextNode truncated-prefix openings across host, path, query, fragment, and `www.` splits while keeping Cross-TextNode reconstruction intentionally unsupported.
+- Preserve page-owned DOM nodes that happen to reuse internal IDs; cleanup now removes only verifiable script-owned artifacts.
+- Harden reinjection against hostile or accidental collisions on the historical string global by using a symbol-backed primary lifecycle registry.
+- Add bounded exact-window caching for repeated scans of the same region in very long TextNodes, with mutation invalidation and a small LRU limit.
+- Bound Cross-TextNode sibling safety checks so the guard itself cannot re-parse an arbitrarily long TextNode tail.
+
+### Regression Fixture v1.2
+
+- Expand the browser-facing fixture from 160 to 166 cases across the same 20 sections.
+- Preserve all prior 160 testcase rows and expectations unchanged.
+- Add five Cross-TextNode truncated-prefix regressions (`host`, `path`, `query`, `fragment`, `www`) and one unsupported outer-scheme + `ttps://` regression.
+
+### Validation
+
+- Targeted parser regression: 30 / 30 PASS.
+- Full Fixture parser regression: 151 / 151 PASS; 15 DOM-only cases covered by browser interaction.
+- Full Fixture Chromium regression: 168 / 168 PASS across all 166 Fixture v1.2 cases.
+- Unsupported outer-scheme probes: 10 / 10 PASS.
+- v1.0.5 → v1.0.6 parser differential: 100,000 cases, 0 unexpected differences; 7,171 intentional differences limited to unsupported outer-scheme + missing-h suppression.
+- Strict parser/fuzz: 131,995 checks; 100,000 fuzz cases; 0 crashes.
+- Pathological parser medians on the final runner: bare 4.516 ms; `www.` 8.741 ms.
+- Exact-window cache and Cross-TextNode long-tail boundedness gates: PASS.
+- P0/P1 closure: PASS with no high- or medium-severity findings.
+- Official IANA snapshot verification: country-code 248 / 248, delegated IDN 151 / 151, 0 missing / 0 extra.
+- Full acceptance evidence: `tests/acceptance/v1.0.6.md`.
+
 ## [1.0.5] - 2026-09-27
 
 ### Fixed

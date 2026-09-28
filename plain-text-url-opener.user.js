@@ -2,7 +2,7 @@
 // @name         Plain Text URL Opener
 // @name:zh-TW   純文字網址雙擊開啟器
 // @namespace    https://github.com/rucifa/plain-text-url-opener
-// @version      1.0.5
+// @version      1.0.6
 // @description  Double-click plain-text HTTP(S) URLs to open them. Lightweight, no DOM linkification, no full-page scanning, no settings required.
 // @description:zh-TW 雙擊開啟網頁中的純文字 HTTP(S) 網址。輕量、不改寫正文 DOM、不進行背景全頁掃描，也不需要設定介面。
 // @match        http://*/*
@@ -17,34 +17,115 @@
     'use strict';
 
     const GLOBAL_KEY = '__PLAIN_TEXT_URL_OPENER__';
+    const INSTANCE_SYMBOL = Symbol.for(
+        'rucifa.plain-text-url-opener.instance'
+    );
     const LEGACY_GLOBAL_KEYS = ['__TEXT_LINK_UNIVERSAL_LIGHTWEIGHT__'];
+
+    function isManagedInstance(value) {
+        return Boolean(
+            value &&
+            typeof value === 'object' &&
+            typeof value.version === 'string' &&
+            value.controller &&
+            typeof value.controller.abort === 'function' &&
+            typeof value.cleanup === 'function'
+        );
+    }
+
+    function readWindowKey(key) {
+        try {
+            return {
+                ok: true,
+                value: window[key]
+            };
+        }
+        catch {
+            return {
+                ok: false,
+                value: undefined
+            };
+        }
+    }
+
+    const primaryBefore =
+        readWindowKey(INSTANCE_SYMBOL);
+
+    /*
+     * The symbol key is the primary lifecycle registry from v1.0.6 onward.
+     * Never overwrite a foreign value at that key; failing closed here is
+     * safer than installing listeners without a reliable cleanup handle.
+     */
+    if (
+        !primaryBefore.ok ||
+        (
+            primaryBefore.value !== undefined &&
+            !isManagedInstance(primaryBefore.value)
+        )
+    ) {
+        return;
+    }
 
     const seenInstances = new Set();
 
-    for (const key of [GLOBAL_KEY, ...LEGACY_GLOBAL_KEYS]) {
-        const previous = window[key];
+    for (
+        const key of [
+            INSTANCE_SYMBOL,
+            GLOBAL_KEY,
+            ...LEGACY_GLOBAL_KEYS
+        ]
+    ) {
+        const entry = readWindowKey(key);
 
         if (
-            previous &&
-            typeof previous === 'object' &&
-            !seenInstances.has(previous)
+            !entry.ok ||
+            !isManagedInstance(entry.value) ||
+            seenInstances.has(entry.value)
         ) {
-            seenInstances.add(previous);
+            continue;
+        }
 
-            try {
-                previous.controller?.abort();
-                previous.cleanup?.();
-            }
-            catch {
-                // A broken previous instance must not block the new one.
-            }
+        const previous = entry.value;
+        seenInstances.add(previous);
+
+        try {
+            previous.controller.abort();
+        }
+        catch {
+            // A broken previous controller must not block the new instance.
         }
 
         try {
-            delete window[key];
+            previous.cleanup();
         }
         catch {
-            // Ignore cleanup failure.
+            // A broken previous cleanup must not block the new instance.
+        }
+    }
+
+    /*
+     * Delete only keys that actually point to a recognized script instance.
+     * Unknown page-owned globals are left untouched.
+     */
+    for (
+        const key of [
+            INSTANCE_SYMBOL,
+            GLOBAL_KEY,
+            ...LEGACY_GLOBAL_KEYS
+        ]
+    ) {
+        const entry = readWindowKey(key);
+
+        if (
+            entry.ok &&
+            isManagedInstance(entry.value)
+        ) {
+            try {
+                delete window[key];
+            }
+            catch {
+                // The primary claim below will decide whether startup is safe.
+            }
         }
     }
 
@@ -74,14 +155,8 @@
         success: 'plain-text-url-opener-success',
     });
 
-    const LEGACY_IDS = Object.freeze([
-        'text-link-universal-status',
-        'text-link-universal-toast',
-        'text-link-universal-panel',
-        'text-link-universal-style',
-        'text-link-universal-ui-host',
+    const LEGACY_HIGHLIGHT_STYLE_IDS = Object.freeze([
         'text-link-universal-highlight-style',
-        'plain-text-url-opener-ui-host',
         'plain-text-url-opener-highlight-style',
     ]);
 
@@ -219,6 +294,7 @@
         );
     }
 
+    const MAX_CACHED_SCAN_WINDOWS = 4;
     const nodeCache = new WeakMap();
 
     let hoverTimer = 0;
@@ -227,7 +303,61 @@
     let hoverState = null;
     let uiHost = null;
     let uiPanel = null;
+    let highlightStyle = null;
     let panelVisible = false;
+
+    const instance = {
+        owner: 'Plain Text URL Opener',
+        version: '1.0.6',
+        controller,
+        cleanup
+    };
+
+    let primaryClaimed = false;
+
+    try {
+        Object.defineProperty(
+            window,
+            INSTANCE_SYMBOL,
+            {
+                value: instance,
+                writable: true,
+                configurable: true
+            }
+        );
+
+        primaryClaimed =
+            window[INSTANCE_SYMBOL] === instance;
+    }
+    catch {
+        // Registration failure is handled below before listeners are added.
+    }
+
+    if (!primaryClaimed) {
+        controller.abort();
+        return;
+    }
+
+    /*
+     * Keep the historical string key as an optional compatibility mirror.
+     * A page-owned collision must not break the primary symbol registry.
+     */
+    const mirrorBefore = readWindowKey(GLOBAL_KEY);
+
+    if (
+        mirrorBefore.ok &&
+        (
+            mirrorBefore.value === undefined ||
+            isManagedInstance(mirrorBefore.value)
+        )
+    ) {
+        try {
+            window[GLOBAL_KEY] = instance;
+        }
+        catch {
+            // The symbol registry remains authoritative.
+        }
+    }
 
     // ================================================================
     // General helpers
@@ -545,6 +675,87 @@
         return raw;
     }
 
+    function hasPlausibleAdjacentDomainBoundary(
+        raw,
+        index,
+        kind
+    ) {
+        let hostEnd = index;
+        let portStart = hostEnd;
+        let portDigits = 0;
+
+        while (
+            portStart > 0 &&
+            portDigits < 5
+        ) {
+            const code = raw.charCodeAt(
+                portStart - 1
+            );
+
+            if (code < 48 || code > 57) {
+                break;
+            }
+
+            portStart--;
+            portDigits++;
+        }
+
+        if (
+            portDigits > 0 &&
+            portStart > 0 &&
+            raw[portStart - 1] === ':'
+        ) {
+            hostEnd = portStart - 1;
+        }
+
+        let labelStart = hostEnd;
+        let labelLength = 0;
+
+        while (
+            labelStart > 0 &&
+            labelLength <= 63
+        ) {
+            const char = raw[labelStart - 1];
+
+            if (char === '.') {
+                break;
+            }
+
+            if (!/[A-Za-z0-9-]/.test(char)) {
+                return false;
+            }
+
+            labelStart--;
+            labelLength++;
+        }
+
+        if (
+            labelLength < 1 ||
+            labelLength > 63 ||
+            labelStart <= 0 ||
+            raw[labelStart - 1] !== '.'
+        ) {
+            return false;
+        }
+
+        const tld = raw
+            .slice(labelStart, hostEnd)
+            .toLowerCase();
+
+        if (
+            COMMON_TLDS.has(tld) ||
+            COUNTRY_CODE_TLDS.has(tld) ||
+            IDN_TLDS.has(tld)
+        ) {
+            return true;
+        }
+
+        return (
+            kind === 'www' &&
+            /^[a-z]{3,63}$/i.test(tld)
+        );
+    }
+
     function trimLikelyAdjacentNonLatinProse(
         raw,
         kind
@@ -554,8 +765,8 @@
         }
 
         /*
-         * First preserve every scheme-less hostname that already validates
-         * as a supported domain, including real Unicode / IDN hostnames.
+         * Preserve every complete scheme-less hostname that already
+         * validates, including Unicode / IDN hostnames.
          */
         if (isLikelySchemeLessDomain(raw, kind)) {
             return raw;
@@ -572,25 +783,38 @@
         while (index < authorityEnd) {
             const codePoint = raw.codePointAt(index);
             const char = String.fromCodePoint(codePoint);
+            const previous =
+                index > 0
+                    ? raw[index - 1]
+                    : '';
 
             /*
-             * Preserve the long-standing multilingual-adjacency behavior:
-             *   example.comРусский  -> example.com
-             *   example.comΕλληνικά -> example.com
+             * The v1.0.5 fallback validated every non-Latin transition.
+             * An adversarial 8 KB token could therefore trigger thousands
+             * of URL constructions on the main thread.
              *
-             * Latin-script adjacency remains intentionally conservative,
-             * e.g. example.comFrançais is not shortened automatically.
-             * CJK adjacency is handled by trimLikelyAdjacentCJKProse().
+             * First perform a bounded ASCII-TLD check around the boundary.
+             * Full URL/IDNA validation is only needed when the prefix can
+             * plausibly end in a supported TLD (or the historical broad
+             * www.* suffix rule). This preserves examples such as:
+             *   example.comРусский  -> example.com
+             *   example.com:8080中文 -> handled by the CJK path
+             * while keeping pathological work effectively linear.
              */
             if (
                 codePoint > 0x7F &&
                 /\p{L}/u.test(char) &&
-                !/\p{Script=Latin}/u.test(char)
+                !/\p{Script=Latin}/u.test(char) &&
+                /[A-Za-z0-9]/.test(previous) &&
+                hasPlausibleAdjacentDomainBoundary(
+                    raw,
+                    index,
+                    kind
+                )
             ) {
                 const prefix = raw.slice(0, index);
 
                 if (
-                    /[A-Za-z0-9]$/.test(prefix) &&
                     isLikelySchemeLessDomain(
                         prefix,
                         kind
@@ -1118,7 +1342,9 @@
                 }
 
                 if (
-                    spec.kind === 'scheme' &&
+                    ['scheme', 'missing-scheme'].includes(
+                        spec.kind
+                    ) &&
                     hasUnsupportedOuterSchemePrefix(
                         normalized,
                         match.index
@@ -1349,7 +1575,45 @@
             end
         );
 
-        return buildCandidates(
+        let cached = nodeCache.get(node);
+
+        if (
+            !cached ||
+            cached.text !== fullText ||
+            !(cached.windows instanceof Map)
+        ) {
+            cached = {
+                text: fullText,
+                windows: new Map()
+            };
+
+            nodeCache.set(
+                node,
+                cached
+            );
+        }
+
+        const windowKey =
+            `${windowed.baseOffset}:${windowed.text.length}`;
+
+        const cachedWindow =
+            cached.windows.get(windowKey);
+
+        if (
+            cachedWindow &&
+            cachedWindow.text === windowed.text
+        ) {
+            /* Refresh insertion order so the small map acts as an LRU. */
+            cached.windows.delete(windowKey);
+            cached.windows.set(
+                windowKey,
+                cachedWindow
+            );
+
+            return cachedWindow.candidates;
+        }
+
+        const candidates = buildCandidates(
             windowed.text,
             windowed.baseOffset
         )
@@ -1361,6 +1625,26 @@
                         windowed
                     )
             );
+
+        cached.windows.set(
+            windowKey,
+            {
+                text: windowed.text,
+                candidates
+            }
+        );
+
+        while (
+            cached.windows.size >
+            MAX_CACHED_SCAN_WINDOWS
+        ) {
+            const oldestKey =
+                cached.windows.keys().next().value;
+
+            cached.windows.delete(oldestKey);
+        }
+
+        return candidates;
     }
 
     function bestCandidate(candidates) {
@@ -1378,13 +1662,19 @@
         return candidates[0];
     }
 
-    const DOM_SPLIT_RIGHT_CONTINUATION_RE =
-        /[\p{L}\p{N}-]/u;
+    const DOM_SPLIT_CONTEXT_LIMIT = 256;
 
-    function nextSiblingTextChar(node) {
+    function nextSiblingText(
+        node,
+        limit = DOM_SPLIT_CONTEXT_LIMIT
+    ) {
         let sibling = node.nextSibling;
+        let result = '';
 
-        while (sibling) {
+        while (
+            sibling &&
+            result.length < limit
+        ) {
             const text =
                 sibling.nodeType === Node.TEXT_NODE
                     ? sibling.nodeValue || ''
@@ -1393,13 +1683,16 @@
                         : '';
 
             if (text) {
-                return text[0] || '';
+                result += text.slice(
+                    0,
+                    limit - result.length
+                );
             }
 
             sibling = sibling.nextSibling;
         }
 
-        return '';
+        return result;
     }
 
     function isCandidateSplitAcrossSibling(
@@ -1414,29 +1707,68 @@
             return false;
         }
 
-        const trailing = (node.nodeValue || '').slice(
+        const nodeText = node.nodeValue || '';
+        const trailing = nodeText.slice(
             candidate.end
         );
 
         /*
-         * trimCandidate() removes sentence-ending periods. If such a period
-         * is immediately followed by another inline hostname label, the URL
-         * is split across DOM nodes rather than terminated:
-         *   http://www.<em>mozilla</em>.org/
-         *   https://example.<span>com</span>/path
-         *
-         * Cross-TextNode reconstruction remains intentionally unsupported;
-         * this guard only prevents opening the truncated prefix.
+         * A whitespace / quote-like token separator already terminates the
+         * current URL before the DOM boundary, so a later sibling cannot be
+         * part of the same token.
          */
-        if (!/^\.+$/u.test(trailing)) {
+        if (
+            trailing &&
+            URL_TOKEN_SEPARATOR_RE.test(
+                trailing
+            )
+        ) {
             return false;
         }
 
-        const next = nextSiblingTextChar(node);
+        const continuation =
+            nextSiblingText(node);
 
-        return Boolean(
-            next &&
-            DOM_SPLIT_RIGHT_CONTINUATION_RE.test(next)
+        if (!continuation) {
+            return false;
+        }
+
+        /*
+         * Do not defeat bounded scanning by reparsing an arbitrarily long
+         * non-separator tail just to inspect the following sibling. Once the
+         * ambiguous tail itself exceeds our small DOM-boundary context budget,
+         * fail closed: Cross-TextNode reconstruction is unsupported, so
+         * suppressing the possibly truncated prefix is safer than performing
+         * unbounded main-thread work.
+         */
+        if (
+            trailing.length >
+            DOM_SPLIT_CONTEXT_LIMIT
+        ) {
+            return true;
+        }
+
+        /*
+         * Cross-TextNode reconstruction remains intentionally unsupported.
+         * We only use a small read-only sibling context to answer one
+         * conservative question: would the parser see a strictly longer URL
+         * if the adjacent DOM text were contiguous?
+         *
+         * If yes, opening the current candidate would open a truncated prefix
+         * of a URL split by markup. Suppress it instead. We never navigate to
+         * the reconstructed candidate.
+         */
+        const localNodeEnd =
+            nodeText.length - candidate.start;
+
+        const context =
+            nodeText.slice(candidate.start) +
+            continuation;
+
+        return buildCandidates(context).some(
+            item =>
+                item.start === 0 &&
+                item.end > localNodeEnd
         );
     }
 
@@ -1509,8 +1841,38 @@
     // ================================================================
 
     function cleanupLegacyUI() {
-        for (const id of LEGACY_IDS) {
-            document.getElementById(id)?.remove();
+        /*
+         * Never remove a page element by ID alone. Only clean artifacts whose
+         * element type / content identifies them as an older script-owned UI.
+         */
+        const legacyHost = document.getElementById(
+            'plain-text-url-opener-ui-host'
+        );
+
+        if (
+            legacyHost?.localName ===
+                'plain-text-url-opener-ui'
+        ) {
+            legacyHost.remove();
+        }
+
+        for (const id of LEGACY_HIGHLIGHT_STYLE_IDS) {
+            const style = document.getElementById(id);
+            const css = style?.textContent || '';
+
+            if (
+                style?.localName === 'style' &&
+                (
+                    css.includes(
+                        'plain-text-url-opener-hover'
+                    ) ||
+                    css.includes(
+                        'text-link-universal'
+                    )
+                )
+            ) {
+                style.remove();
+            }
         }
     }
 
@@ -1526,8 +1888,8 @@
             'plain-text-url-opener-ui'
         );
 
-        host.id =
-            'plain-text-url-opener-ui-host';
+        host.dataset.plainTextUrlOpenerOwned =
+            'ui-host';
 
         host.style.cssText = `
             all: initial !important;
@@ -1649,11 +2011,7 @@
     }
 
     function ensureHighlightStyle() {
-        if (
-            document.getElementById(
-                'plain-text-url-opener-highlight-style'
-            )
-        ) {
+        if (highlightStyle?.isConnected) {
             return;
         }
 
@@ -1661,8 +2019,8 @@
             'style'
         );
 
-        style.id =
-            'plain-text-url-opener-highlight-style';
+        style.dataset.plainTextUrlOpenerOwned =
+            'highlight-style';
 
         style.textContent = `
             ::highlight(${HIGHLIGHT.hover}) {
@@ -1715,6 +2073,8 @@
             document.head ||
             document.documentElement
         ).appendChild(style);
+
+        highlightStyle = style;
     }
 
     function setHighlight(
@@ -2429,32 +2789,16 @@
         hidePanel();
 
         uiHost?.remove();
+        highlightStyle?.remove();
 
         uiHost = null;
         uiPanel = null;
-
-        document
-            .getElementById(
-                'plain-text-url-opener-highlight-style'
-            )
-            ?.remove();
-
-        document
-            .getElementById(
-                'text-link-universal-highlight-style'
-            )
-            ?.remove();
+        highlightStyle = null;
     }
 
     cleanupLegacyUI();
 
-    window[GLOBAL_KEY] = {
-        version: '1.0.5',
-        controller,
-        cleanup
-    };
-
     log(
-        'Plain Text URL Opener v1.0.5 Stable loaded'
+        'Plain Text URL Opener v1.0.6 Stable loaded'
     );
 })();
