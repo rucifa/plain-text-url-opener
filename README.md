@@ -8,9 +8,7 @@
 
 </div>
 
-Plain Text URL Opener 是一個 **userscript（使用者腳本）**，需要搭配 [Violentmonkey](https://violentmonkey.github.io/)、[Tampermonkey](https://www.tampermonkey.net/) 等 userscript 管理器使用。
-
-安裝後，只要在網頁上的**純文字網址直接雙擊**，就能開啟網址；不會把整個網頁的文字改寫成超連結，也不會在背景持續掃描整個頁面。
+Plain Text URL Opener 是一個輕量的 **userscript（使用者腳本）**。安裝後，只要在網頁上的**純文字網址直接雙擊**，就能開啟網址；不會把整頁文字改寫成超連結，也不會在背景持續掃描整個頁面。
 
 > 🧪 **想先看看它怎麼運作？** [開啟公開測試頁 v1.3（169 個測試案例）](https://rucifa.github.io/plain-text-url-opener/?v=1.3)
 
@@ -18,61 +16,61 @@ Plain Text URL Opener 是一個 **userscript（使用者腳本）**，需要搭�
 
 ## 安裝
 
-Plain Text URL Opener 是一個 **userscript（使用者腳本）**。第一次使用時，需要先在瀏覽器安裝 userscript 管理器，再安裝本腳本。
+第一次使用 userscript 時，請先安裝 userscript 管理器，再安裝本腳本。
 
 ### 1. 安裝 userscript 管理器
 
-你可以選擇常見的 userscript 管理器，例如：
+常見選擇包括：
 
 | Userscript 管理器 | 說明 | 官方連結 |
 |---|---|---|
 | **Violentmonkey** | 常見的開源 userscript 管理器 | https://violentmonkey.github.io/ |
-| **Tampermonkey** | 常見的跨瀏覽器 userscript 管理器；中文社群有時俗稱「油猴」 | https://www.tampermonkey.net/ |
+| **Tampermonkey** | 常見的跨瀏覽器 userscript 管理器 | https://www.tampermonkey.net/ |
 | **Greasemonkey** | Firefox 上歷史悠久的 userscript 管理器 | https://addons.mozilla.org/firefox/addon/greasemonkey/ |
 
-> Tampermonkey 與 Greasemonkey 是不同的專案；中文社群雖常把 Tampermonkey 稱為「油猴」，但兩者不要混為同一個擴充套件。
+> Tampermonkey 與 Greasemonkey 是不同的專案；中文社群雖常把 Tampermonkey 稱為「油猴」，但兩者不是同一個擴充套件。
 
-Plain Text URL Opener 使用 `@grant none`，不依賴特定管理器提供的 GM API。不過目前專案尚未對所有「瀏覽器 × userscript 管理器」組合進行完整相容性驗證，因此上表列的是常見選擇，不代表所有組合都已完整測試。
+Plain Text URL Opener 使用 `@grant none`，不依賴特定管理器提供的 GM API。不過目前尚未對所有「瀏覽器 × userscript 管理器」組合完成完整相容性驗證，因此上表是常見選擇，不代表所有組合皆已完整測試。
 
 ### 2. 安裝 Plain Text URL Opener
 
-安裝 userscript 管理器後，開啟下面的腳本：
-
 **[安裝 `plain-text-url-opener.user.js`](https://raw.githubusercontent.com/rucifa/plain-text-url-opener/main/plain-text-url-opener.user.js)**
 
-正常情況下，userscript 管理器會自動開啟安裝畫面。如果沒有自動攔截 Raw URL，也可以把上面的網址手動匯入管理器。
+正常情況下，userscript 管理器會自動開啟安裝畫面；如果沒有自動攔截 Raw URL，也可以把網址手動匯入管理器。
 
-### GitHub Releases
+### 固定使用特定版本
 
-正式 Stable 版本會在 [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases) 以同一個檔名提供：
+正式 Stable 版本會在 [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases) 提供同名的 `plain-text-url-opener.user.js`。如果你希望固定使用某個版本，建議從對應 Release 安裝該 `.user.js` 檔案。
 
-`plain-text-url-opener.user.js`
-
-如果你希望固定使用某個特定版本，建議從對應的 Release 下載這個 `.user.js` 檔案。GitHub 自動產生的 `Source code (zip)` / `Source code (tar.gz)` 主要用於原始碼封存，不是一般使用者的主要安裝方式。
+GitHub 自動產生的 `Source code (zip)` / `Source code (tar.gz)` 主要是原始碼封存，不是一般使用者的主要安裝檔。
 
 ---
 
-## 這個腳本可以做什麼？
+## 功能與操作
 
-有些網頁、論壇、文件或系統畫面會顯示網址，但它只是**純文字**，不是可以直接點擊的連結。
-
-Plain Text URL Opener 讓你直接在網址文字上操作，不需要先完整選取、複製，再貼到網址列。
+Plain Text URL Opener 解決的情境很單純：有些網頁、論壇、文件或系統畫面會顯示網址，但它只是**純文字**，不能直接點擊。
 
 ### 主要功能
 
 - ✅ **雙擊純文字網址直接開啟**
 - ✅ 預設在**新分頁**開啟
-- ✅ `Shift + 雙擊`：改用目前分頁開啟
+- ✅ `Shift + 雙擊`：改在**目前分頁**開啟
 - ✅ `Alt + 雙擊`：只選取完整網址，不開啟
 - ✅ 支援一般 `http://` / `https://`、`www.`、常見裸網域、IDN 與 Unicode 路徑／查詢字串
 - ✅ 既有 `<a href>`、按鈕、輸入框、文字區域與可編輯內容會被忽略
 - ✅ 可辨識 defanged URL，但**不會自動開啟**
-- ✅ `@grant none`
-- ✅ 不需要設定介面
-- ✅ 不使用背景全頁掃描
-- ✅ 不把正文中的網址改寫成 `<a>`
+- ✅ `@grant none`，不需要設定介面
+- ✅ 不使用背景全頁掃描，也不會把正文網址改寫成 `<a>`
 
-### 簡單範例
+### 操作方式
+
+| 操作 | 結果 |
+|---|---|
+| 雙擊 | 在新分頁開啟偵測到的網址 |
+| `Shift + 雙擊` | 在目前分頁開啟 |
+| `Alt + 雙擊` | 選取完整網址，不開啟 |
+
+### 範例
 
 | 網頁中的文字 | 行為 |
 |---|---|
@@ -81,76 +79,10 @@ Plain Text URL Opener 讓你直接在網址文字上操作，不需要先完整�
 | `example.com` | 依保守裸網域規則辨識 |
 | `https://www.例え.jp/` | 支援 IDN |
 | `https://example.com/wiki/臺灣` | 保留 Unicode 路徑 |
+| `https://example.com/a).` | 排除句尾多餘的 `).` 後開啟 |
+| `https://example.com/a)?15fdsa` | `)` 位於網址內容中時完整保留 |
+| `https://shop.example.com/item?id=123&utm_source=test#reviews` | 保留 query 與 fragment |
 | `hxxps://example.com` | 可辨識，但不自動開啟 |
-
----
-
-## 與 Text Link / Linkify Plus Plus 有什麼不同？
-
-這三個工具處理的問題相近，但**設計方向不同**。下面不是優劣排名，而是幫助你快速判斷哪一種方式比較適合自己。
-
-| 功能 / 設計取向 | **Plain Text URL Opener** | **[Text Link](https://addons.mozilla.org/firefox/addon/text-link/)** | **[Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus)** |
-|---|:---:|:---:|:---:|
-| 雙擊純文字網址直接開啟 | ✅ | ✅ | ❌ |
-| 不先把正文改寫成連結 | ✅ | ✅ | ❌ |
-| 將文字網址轉成真正 `<a>` 連結 | ❌ | ❌ | ✅ |
-| Unicode / 多位元網址處理 | ✅ | ✅ | ✅ |
-| 跨文字節點（TextNode）重建完整網址 | ❌ 刻意不支援 | ✅ | ⚠️ README 未明確承諾 |
-| 網頁後來新增的文字內容 | ✅ 互動時即時辨識 | ⚠️ 實作方式不同 | ✅ 支援動態內容 |
-| 自訂規則 | ❌ | — | ✅ |
-| 白名單 / 黑名單 | ❌ | — | ✅ |
-| Userscript 形式 | ✅ | ❌ | ✅ |
-| Firefox 擴充套件 | ❌ | ✅ | ✅ |
-| 公開測試頁 / 固定測試案例 | ✅ | ✅ | ✅ |
-
-> `❌` 不代表功能較差，而是代表該功能**不是這個工具選擇的設計方向**。  
-> `⚠️` 代表功能或實作方式與另外兩者不同，不適合用單一勾叉直接等同比較。  
-> `—` 代表官方公開說明中不是主要比較重點，因此不在這裡做推定。
-
-### Plain Text URL Opener 的定位
-
-如果你想要的是：
-
-> **「看到純文字網址 → 雙擊 → 開啟」**
-
-而且希望：
-
-- 不改變原網頁排版
-- 不在背景掃描整個頁面
-- 不需要大量設定
-- 不把所有網址永久轉成超連結
-- 腳本本身維持單檔、事件驅動、可驗證
-
-那 Plain Text URL Opener 就是針對這個較窄、較簡單的使用情境設計。
-
-### Text Link
-
-[Piro 的 Text Link](https://addons.mozilla.org/firefox/addon/text-link/) 是這類工具中歷史悠久的 Firefox 擴充套件。它同樣主打**雙擊純文字 URI 直接開啟**，並明確支援跨多個 TextNode 的 URI、多位元文字 URI，而且不需要把頁面文字改寫成連結。
-
-- Firefox Add-ons: https://addons.mozilla.org/firefox/addon/text-link/
-- 歷史文件 / testcase: https://piro.sakura.ne.jp/xul/textlink/index.html.en
-
-### Linkify Plus Plus
-
-[Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus) 採用另一條路線：它會**偵測文字網址並轉成真正的連結**，並提供 dynamic content、Unicode、自訂規則、whitelist / blacklist、圖片嵌入與多種觸發方式。
-
-如果你希望網頁上的純文字網址在頁面中直接變成可點擊連結，Linkify Plus Plus 的功能範圍會比本專案更完整；Plain Text URL Opener 則刻意避免 DOM linkification。
-
-### 參考與致謝
-
-Plain Text URL Opener 的設計與測試方法曾參考上述兩個相關專案的公開說明與測試案例；其中 [Text Link](https://addons.mozilla.org/firefox/addon/text-link/) 的歷史 testcase 是本專案建立固定回歸測試思維的重要參考之一，[Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus) 則提供了另一種「將純文字網址直接轉成可點擊連結」的設計對照。
-
-本 repo 的實作為獨立撰寫；除非 repo 內另有明確註記，否則未直接納入上述專案的原始碼。
-
----
-
-## 操作方式
-
-| 操作 | 結果 |
-|---|---|
-| 雙擊 | 在新分頁開啟偵測到的網址 |
-| `Shift + 雙擊` | 反轉開啟模式，使用目前分頁 |
-| `Alt + 雙擊` | 只選取完整網址，不開啟 |
 
 ---
 
@@ -164,7 +96,7 @@ Plain Text URL Opener 的設計與測試方法曾參考上述兩個相關專案�
 - 明確 IPv4 URL
 - IPv6 網址
 - 國際化網域名稱（IDN / Punycode）
-- 含中文等 Unicode 文字的網址路徑、查詢參數與 `#` 片段
+- 含中文等 Unicode 文字的 path、query 與 `#` fragment
 - 常見標點與括號邊界
 - 部分缺少開頭 `h` 的 `ttp://` / `ttps://`
 - 安全化／去活化網址（例如 `hxxps://`）可辨識，但不會自動開啟
@@ -176,56 +108,69 @@ Plain Text URL Opener 的設計與測試方法曾參考上述兩個相關專案�
 - 裸 IPv4
 - 預設相對路徑
 - 廣泛的非 HTTP(S) 網址協定
-- 完整的網域後綴清單（Public Suffix List）
-- Shadow DOM 內的純文字網址不保證跨瀏覽器一致支援；closed Shadow DOM 尤其取決於瀏覽器的事件與 Selection 行為
+- 完整內嵌 Public Suffix List
+- Shadow DOM 內的純文字網址不保證跨瀏覽器一致支援
 - 部分省略 `http://` / `https://` 的國際化網域仍採保守辨識策略
 
 這些是目前的產品邊界，不應自動視為 bug。
 
 ---
 
-## 為什麼不直接把所有網址變成連結？
+## 設計取向與相關工具
 
-因為本專案刻意選擇另一個方向：
+Plain Text URL Opener 專注於：
 
-- **不修改正文 DOM**
-- **不長時間監看整頁變化**
-- **不做背景全頁 linkification**
-- 只有在滑鼠互動時才對附近文字做 lazy parsing
+> **「看到純文字網址 → 雙擊 → 開啟」**
 
-目的不是取代功能完整的 linkifier，而是把「雙擊純文字網址」這件事情做到足夠可靠，同時維持較小的執行面積與較單純的行為。
+它刻意不修改正文 DOM、不把網址永久轉成連結、不持續監看整個頁面；只有在使用者互動時才解析附近文字。目標不是取代功能完整的 linkifier，而是把這個單一工作流程做到可靠、簡單且可驗證。
+
+### 與 Text Link / Linkify Plus Plus 的差異
+
+| 功能 / 設計取向 | **Plain Text URL Opener** | **[Text Link](https://addons.mozilla.org/firefox/addon/text-link/)** | **[Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus)** |
+|---|:---:|:---:|:---:|
+| 雙擊純文字網址直接開啟 | ✅ | ✅ | ❌ |
+| 不先把正文改寫成連結 | ✅ | ✅ | ❌ |
+| 將文字網址轉成真正 `<a>` 連結 | ❌ | ❌ | ✅ |
+| Unicode / 多位元網址處理 | ✅ | ✅ | ✅ |
+| 跨 TextNode 重建完整網址 | ❌ 刻意不支援 | ✅ | ⚠️ README 未明確承諾 |
+| 新增的動態文字內容 | ✅ 互動時即時辨識 | ⚠️ 實作方式不同 | ✅ |
+| 自訂規則 / 白名單 / 黑名單 | ❌ | — | ✅ |
+
+`❌` 在這裡代表設計取向不同，不代表功能較差；`⚠️` 則表示實作方式不適合直接用單一勾叉比較。
+
+### 參考與致謝
+
+本專案的設計與測試方法曾參考 [Text Link](https://addons.mozilla.org/firefox/addon/text-link/) 的公開說明與歷史 testcase，以及 [Linkify Plus Plus](https://github.com/eight04/linkify-plus-plus) 的公開文件。Plain Text URL Opener 的實作為獨立撰寫；除非 repo 內另有明確註記，否則未直接納入上述專案的原始碼。
 
 ---
 
-## 版本與測試
+## 版本與驗證
 
-目前正式版本：**v1.0.10**
-
-v1.0.10 為目前 Stable baseline。本版只最佳化官方 icon 的 PNG 壓縮與 userscript `@icon` metadata：64×64 RGBA PNG 由 **16,516 bytes** 降至 **5,697 bytes**，並已在 Firefox + Violentmonkey 與 Chromium 系 + Violentmonkey 實際安裝確認圖示正常。URL 辨識、DOM 互動、導覽、安全邊界與效能邏輯皆未變更。
+目前 Stable baseline：**Plain Text URL Opener v1.0.10 + Regression Fixture v1.3**。
 
 | 項目 | 狀態 |
 |---|---|
+| Stable version | **v1.0.10** |
 | Regression Fixture | **v1.3 / 169 cases** |
-| Fixture v1.3 實際瀏覽器互動驗證 | **Chromium 171 / 171 · Firefox 171 / 171 PASS** |
-| v1.0.10 icon / metadata 驗收 | **PASS** |
-| v1.0.9 Integration Audit | **PASS** |
-| 核心完整行為驗收基準 | **v1.0.6** |
-| Firefox / Chromium 系 | ✅ 已進行實際瀏覽器與 userscript manager 圖示驗證 |
+| Chromium 實際瀏覽器互動 | **171 / 171 PASS** |
+| Firefox 實際瀏覽器互動 | **171 / 171 PASS** |
+| Userscript 實裝 / 圖示驗證 | **Firefox + Violentmonkey、Chromium 系 + Violentmonkey** |
 
-詳細版本變更請參閱 [CHANGELOG](./CHANGELOG.md) 與 [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases)。
+> Fixture v1.3 包含 **169 個 testcase**；其中 2 個 testcase 各包含 2 個可操作網址，因此完整實際瀏覽器驗證共執行 **171 次 interaction**。
 
-完整測試紀錄請參閱 [Acceptance Reports](./tests/acceptance/)；也可以直接開啟 [公開回歸測試頁 v1.3](https://rucifa.github.io/plain-text-url-opener/?v=1.3)。
+完整 Fixture 已在 Chromium 140 與 Firefox 141 以 native mouse interaction 驗證；userscript 實裝與圖示顯示另已在 Firefox + Violentmonkey 與 Chromium 系瀏覽器 + Violentmonkey 確認。這不代表所有「瀏覽器 × userscript manager」組合都已完成完整驗證。
+
+後續只有在發現新的實際邊界、回歸風險或明確規格需求時才新增 testcase；**不以增加案例數本身為目標**。
+
+詳細版本變更請參閱 [CHANGELOG](./CHANGELOG.md) 與 [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases)。完整測試證據請參閱 [Acceptance Reports](./tests/acceptance/)；也可以直接開啟 [公開 Regression Fixture v1.3](https://rucifa.github.io/plain-text-url-opener/?v=1.3)。
 
 ---
 
 ## 測試與品質原則
 
-每次功能修改原則上遵循：
-
-1. 先重現明確且可重現的問題／回歸錯誤。
-2. 採用最小修正。
-3. 執行固定回歸測試、瀏覽器實際操作測試與必要的效能檢查。
-4. 只有發現真實程式錯誤、測試案例本身有誤，或產品規格正式變更時，才修改固定測試案例。
+- 行為變更必須先有可重現問題或明確規格需求。
+- 優先採用最小修正，並重新執行固定 regression 與必要的實際瀏覽器測試。
+- Fixture 是獨立測試規格，不會只為了讓目前實作通過而修改 expected result。
 
 ---
 
