@@ -144,11 +144,11 @@ This project's design and testing approach were informed by the public documenta
 
 ## Version and validation
 
-Current Stable baseline: **Plain Text URL Opener v1.0.10 + Regression Fixture v1.3**.
+Current Stable baseline: **Plain Text URL Opener v1.0.11 + Regression Fixture v1.3**.
 
 | Item | Status |
 |---|---|
-| Stable version | **v1.0.10** |
+| Stable version | **v1.0.11** |
 | Regression Fixture | **v1.3 / 169 cases** |
 | Chromium real-browser interaction | **171 / 171 PASS** |
 | Firefox real-browser interaction | **171 / 171 PASS** |

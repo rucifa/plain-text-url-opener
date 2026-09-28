@@ -6,6 +6,21 @@ All notable release changes to Plain Text URL Opener are documented here.
 
 The Regression Fixture has its own version line and should not be changed merely to make a userscript release pass.
 
+## [1.0.11] - 2026-09-28
+
+### Performance and security hardening
+
+- Make the Cross-TextNode truncated-prefix safety check genuinely bounded: same-TextNode trailing inspection now uses a fixed probe, while sibling DOM text collection keeps at most 256 characters and visits at most 512 nodes; exhausting the budget fails closed.
+- Remove the unbounded paths that first materialized full sibling `textContent` or scanned the entire same-node tail, preventing extreme DOM / long-text interaction cost from scaling with the full content size.
+- If `opener = null` isolation fails for a newly opened tab, close the blank popup and abort navigation instead of continuing through the navigation fallback.
+
+### Validation
+
+- Regression Fixture remains **v1.3 / 169 cases** with **zero existing expected-result changes**.
+- Chromium 140: **171 / 171 PASS**; Firefox 141: **171 / 171 PASS**, both rerun with native double-click interaction.
+- Additional adversarial probes validate bounded behavior with a 10,000,000-character same-node tail and a 10,000-node sibling subtree, plus fail-closed behavior when opener isolation fails.
+- The audit also evaluated mixed ASCII + CJK path/query/fragment text. Full Regression confirmed that the existing Fixture intentionally treats CJK without an explicit delimiter as adjacent prose for conservative disambiguation, so no existing Spec, Fixture expectation, or parser behavior was changed.
+
 ## [1.0.10] - 2026-09-28
 
 ### Icon optimization

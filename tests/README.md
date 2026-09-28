@@ -18,6 +18,7 @@ The fixture defines expected behavior. It is intentionally independent from user
 
 ### Current release evidence
 
+- `acceptance/v1.0.11.md` — bounded Cross-TextNode safety / popup isolation hardening acceptance with fresh Chromium 140 + Firefox 141 full-fixture validation.
 - `acceptance/v1.0.10.md` — icon compression / metadata-only release acceptance, including exact-byte identity and cross-browser userscript-manager rendering checks.
 - `acceptance/v1.0.9.md` — Chromium + Firefox integration, security, iframe, SPA, Shadow DOM, editable-control, reinjection, and bounded-performance smoke audit.
 

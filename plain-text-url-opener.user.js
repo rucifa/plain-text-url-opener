@@ -2,7 +2,7 @@
 // @name         Plain Text URL Opener
 // @name:zh-TW   純文字網址雙擊開啟器
 // @namespace    https://github.com/rucifa/plain-text-url-opener
-// @version      1.0.10
+// @version      1.0.11
 // @description  Double-click plain-text HTTP(S) URLs to open them. Lightweight, no DOM linkification, no full-page scanning, no settings required.
 // @description:zh-TW 雙擊開啟網頁中的純文字 HTTP(S) 網址。輕量、不改寫正文 DOM、不進行背景全頁掃描，也不需要設定介面。
 // @match        http://*/*
@@ -309,7 +309,7 @@
 
     const instance = {
         owner: 'Plain Text URL Opener',
-        version: '1.0.10',
+        version: '1.0.11',
         controller,
         cleanup
     };
@@ -1664,36 +1664,78 @@
     }
 
     const DOM_SPLIT_CONTEXT_LIMIT = 256;
+    const DOM_SPLIT_NODE_VISIT_LIMIT = 512;
+
+    function appendBoundedText(
+        root,
+        state
+    ) {
+        const walker = document.createTreeWalker(
+            root,
+            NodeFilter.SHOW_ALL
+        );
+
+        let current = root;
+
+        while (
+            current &&
+            state.text.length < state.limit
+        ) {
+            if (
+                state.visited >= state.nodeLimit
+            ) {
+                state.exhausted = true;
+                return;
+            }
+
+            state.visited++;
+
+            if (
+                current.nodeType === Node.TEXT_NODE
+            ) {
+                const nodeText = current.nodeValue || '';
+
+                if (nodeText) {
+                    state.text += nodeText.slice(
+                        0,
+                        state.limit - state.text.length
+                    );
+                }
+            }
+
+            current = walker.nextNode();
+        }
+    }
 
     function nextSiblingText(
         node,
-        limit = DOM_SPLIT_CONTEXT_LIMIT
+        limit = DOM_SPLIT_CONTEXT_LIMIT,
+        nodeLimit = DOM_SPLIT_NODE_VISIT_LIMIT
     ) {
+        const state = {
+            text: '',
+            limit,
+            nodeLimit,
+            visited: 0,
+            exhausted: false
+        };
+
         let sibling = node.nextSibling;
-        let result = '';
 
         while (
             sibling &&
-            result.length < limit
+            state.text.length < limit &&
+            !state.exhausted
         ) {
-            const text =
-                sibling.nodeType === Node.TEXT_NODE
-                    ? sibling.nodeValue || ''
-                    : sibling.nodeType === Node.ELEMENT_NODE
-                        ? sibling.textContent || ''
-                        : '';
-
-            if (text) {
-                result += text.slice(
-                    0,
-                    limit - result.length
-                );
-            }
+            appendBoundedText(
+                sibling,
+                state
+            );
 
             sibling = sibling.nextSibling;
         }
 
-        return result;
+        return state;
     }
 
     function isCandidateSplitAcrossSibling(
@@ -1709,56 +1751,65 @@
         }
 
         const nodeText = node.nodeValue || '';
-        const trailing = nodeText.slice(
-            candidate.end
+        const trailingLength = Math.max(
+            0,
+            nodeText.length - candidate.end
+        );
+
+        const trailingProbe = nodeText.slice(
+            candidate.end,
+            Math.min(
+                nodeText.length,
+                candidate.end + DOM_SPLIT_CONTEXT_LIMIT + 1
+            )
         );
 
         /*
          * A whitespace / quote-like token separator already terminates the
          * current URL before the DOM boundary, so a later sibling cannot be
          * part of the same token.
+         *
+         * Inspect only a bounded prefix. If the unresolved tail is longer
+         * than our context budget, the check below fails closed instead of
+         * scanning the entire TextNode.
          */
         if (
-            trailing &&
+            trailingProbe &&
             URL_TOKEN_SEPARATOR_RE.test(
-                trailing
+                trailingProbe
             )
         ) {
             return false;
         }
 
-        const continuation =
+        const siblingContext =
             nextSiblingText(node);
+
+        if (siblingContext.exhausted) {
+            return true;
+        }
+
+        const continuation =
+            siblingContext.text;
 
         if (!continuation) {
             return false;
         }
 
         /*
-         * Do not defeat bounded scanning by reparsing an arbitrarily long
-         * non-separator tail just to inspect the following sibling. Once the
-         * ambiguous tail itself exceeds our small DOM-boundary context budget,
-         * fail closed: Cross-TextNode reconstruction is unsupported, so
-         * suppressing the possibly truncated prefix is safer than performing
-         * unbounded main-thread work.
+         * Cross-TextNode reconstruction remains intentionally unsupported.
+         * If either the same-node tail or the candidate itself exceeds the
+         * bounded context available for this safety check, suppress the open.
          */
         if (
-            trailing.length >
-            DOM_SPLIT_CONTEXT_LIMIT
+            trailingLength >
+                DOM_SPLIT_CONTEXT_LIMIT ||
+            candidate.end - candidate.start >
+                CONFIG.maxWholeNodeChars
         ) {
             return true;
         }
 
-        /*
-         * Cross-TextNode reconstruction remains intentionally unsupported.
-         * We only use a small read-only sibling context to answer one
-         * conservative question: would the parser see a strictly longer URL
-         * if the adjacent DOM text were contiguous?
-         *
-         * If yes, opening the current candidate would open a truncated prefix
-         * of a URL split by markup. Suppress it instead. We never navigate to
-         * the reconstructed candidate.
-         */
         const localNodeEnd =
             nodeText.length - candidate.start;
 
@@ -2540,6 +2591,19 @@
 
         try {
             opened.opener = null;
+        }
+        catch {
+            try {
+                opened.close();
+            }
+            catch {
+                // Ignore cleanup failure.
+            }
+
+            return false;
+        }
+
+        try {
             opened.location.replace(url);
             return true;
         }
@@ -2800,6 +2864,6 @@
     cleanupLegacyUI();
 
     log(
-        'Plain Text URL Opener v1.0.10 Stable loaded'
+        'Plain Text URL Opener v1.0.11 Stable loaded'
     );
 })();

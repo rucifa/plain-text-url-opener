@@ -6,6 +6,21 @@ Plain Text URL Opener 的重要發布變更皆記錄於此。
 
 Regression Fixture 有自己獨立的版本線，不應僅為了讓某個 userscript 版本通過測試而修改。
 
+## [1.0.11] - 2026-09-28
+
+### 效能與安全強化
+
+- 將跨 TextNode 截斷網址的安全檢查改為真正有界：同一 TextNode 的尾端只探查固定範圍，兄弟 DOM 文字讀取最多保留 256 個字元並限制最多走訪 512 個節點；超過預算時保守 fail closed。
+- 移除先取得完整 sibling `textContent` 與完整 same-node tail 的非固定成本路徑，避免極端 DOM／超長文字讓互動成本隨整體內容大小成長。
+- 新分頁開啟時若 `opener = null` 隔離失敗，現在會關閉空白 popup 並中止導覽，不再沿 fallback 路徑繼續開啟網址。
+
+### 驗證
+
+- Regression Fixture 維持 **v1.3 / 169 cases**；既有 expected result **0 個修改**。
+- Chromium 140：**171 / 171 PASS**；Firefox 141：**171 / 171 PASS**，皆以 native double-click interaction 重新驗證。
+- 額外 adversarial probe 驗證 10,000,000 字 same-node tail 與 10,000-node sibling subtree 的 bounded safety behavior，並驗證 opener isolation failure 會 fail closed。
+- 稽核期間曾評估 ASCII + CJK 混合 path/query/fragment；完整 Regression 證明既有 Fixture 已將無明確分隔符的 CJK 規定為相鄰正文的保守消歧義，因此未變更既有 Spec、Fixture 或 parser 行為。
+
 ## [1.0.10] - 2026-09-28
 
 ### 圖示最佳化

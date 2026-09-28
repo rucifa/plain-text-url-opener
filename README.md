@@ -146,11 +146,11 @@ Plain Text URL Opener 專注於：
 
 ## 版本與驗證
 
-目前 Stable baseline：**Plain Text URL Opener v1.0.10 + Regression Fixture v1.3**。
+目前 Stable baseline：**Plain Text URL Opener v1.0.11 + Regression Fixture v1.3**。
 
 | 項目 | 狀態 |
 |---|---|
-| Stable version | **v1.0.10** |
+| Stable version | **v1.0.11** |
 | Regression Fixture | **v1.3 / 169 cases** |
 | Chromium 實際瀏覽器互動 | **171 / 171 PASS** |
 | Firefox 實際瀏覽器互動 | **171 / 171 PASS** |
