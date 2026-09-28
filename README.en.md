@@ -197,49 +197,21 @@ The goal is not to replace full-featured linkifiers. It is to make the “double
 
 ## Version and testing
 
-Current stable version: **v1.0.9**
+Current stable version: **v1.0.10**
 
-v1.0.9 fixes Firefox compatibility with the original official icon PNG: the production 64×64 icon now uses an RGBA uncompressed PNG that was directly verified to render correctly in Firefox, and the embedded userscript `@icon` was regenerated from the same bytes. URL detection, DOM behavior, navigation, security boundaries, and performance logic are unchanged.
+v1.0.10 is the current Stable baseline. This release only optimizes the official icon PNG compression and userscript `@icon` metadata: the 64×64 RGBA PNG is reduced from **16,516 bytes** to **5,697 bytes**, with successful installation/render checks on Firefox + Violentmonkey and Chromium-family browsers + Violentmonkey. URL detection, DOM interaction, navigation, security boundaries, and performance logic are unchanged.
 
-v1.0.8 improves cross-browser icon compatibility by embedding the official 64×64 PNG directly in userscript `@icon` metadata, avoiding the remote image fetch / conversion path; URL detection, DOM behavior, navigation, security boundaries, and performance logic are unchanged.
+| Item | Status |
+|---|---|
+| Regression Fixture | **v1.2 / 166 cases** |
+| v1.0.10 icon / metadata acceptance | **PASS** |
+| v1.0.9 Integration Audit | **PASS** |
+| Full core behavioral acceptance baseline | **v1.0.6** |
+| Firefox / Chromium family | ✅ Real-browser and userscript-manager icon checks completed |
 
-v1.0.7 is a metadata / branding-only release. It adds the official icon and standard userscript `@icon` metadata; URL detection, DOM behavior, navigation, security boundaries, and performance logic are unchanged from v1.0.6.
+For detailed release history, see the [CHANGELOG](./CHANGELOG.md) and [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases).
 
-v1.0.6 is a hardening release focused on stability, security boundaries, and worst-case performance. It fixes truncated-prefix opening around Cross-TextNode boundaries, unsupported outer-scheme + `ttps://` bypasses, repeated parsing costs in very long TextNodes, and DOM ownership / reinjection collision issues.
-
-### Has this version been thoroughly tested?
-
-Yes. The current **public test page v1.2 contains 166 fixed test cases** covering ordinary URLs, internationalized domains, Unicode text, punctuation, long text, security boundaries, and historical regressions.
-
-v1.0.9 does not change runtime behavior, so behavioral validation is inherited from the fully accepted v1.0.6 implementation. v1.0.6 passed the complete automated suite and real Chromium interaction testing.
-
-- [Open public test page v1.2](https://rucifa.github.io/plain-text-url-opener/?v=1.2)
-- [Read the v1.0.9 integration acceptance report](./tests/acceptance/v1.0.9.md)
-- [Read the v1.0.6 test report](./tests/acceptance/v1.0.6.md)
-- [Read the changelog](./CHANGELOG.md)
-
-<details>
-<summary>Show technical test results</summary>
-
-- URL parser checks: **151 / 151 PASS**
-- Real Chromium interaction checks: **168 / 168 PASS**
-- Unsupported-scheme security probes: **10 / 10 PASS**
-- v1.0.5 → v1.0.6 parser differential: **100,000 cases, 0 unexpected differences**
-- Randomized fuzzing: **100,000 cases, 0 crashes**
-- Long-text cache and Cross-TextNode long-tail performance gates: **PASS**
-- P0 / P1 closure: **no high- or medium-severity findings**
-
-See the [v1.0.6 test report](./tests/acceptance/v1.0.6.md) for full details.
-
-</details>
-
-### Public test page
-
-The repository root [`index.html`](./index.html) is the fixed **public test page v1.2**, containing **166 fixed test cases**. It defines whether each sample should be recognized as a URL and what result is expected.
-
-The expected results are independent of the current userscript implementation. If a new script version violates an unchanged expectation, the script should be fixed rather than rewriting the expected result merely to make the release pass.
-
-**Live test page:** https://rucifa.github.io/plain-text-url-opener/?v=1.2
+For complete validation evidence, see the [Acceptance Reports](./tests/acceptance/), or open the [public Regression Fixture v1.2](https://rucifa.github.io/plain-text-url-opener/?v=1.2).
 
 ---
 

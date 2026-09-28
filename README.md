@@ -199,49 +199,21 @@ Plain Text URL Opener 的設計與測試方法曾參考上述兩個相關專案�
 
 ## 版本與測試
 
-目前正式版本：**v1.0.9**
+目前正式版本：**v1.0.10**
 
-v1.0.9 修正 Firefox 對原始官方 icon PNG 的解碼相容性問題：正式 64×64 icon 改用已在 Firefox 實測可正常顯示的 RGBA 非壓縮 PNG，並同步更新 userscript 內嵌 `@icon`；URL 辨識、DOM、導覽、安全邊界與效能邏輯皆未改變。
+v1.0.10 為目前 Stable baseline。本版只最佳化官方 icon 的 PNG 壓縮與 userscript `@icon` metadata：64×64 RGBA PNG 由 **16,516 bytes** 降至 **5,697 bytes**，並已在 Firefox + Violentmonkey 與 Chromium 系 + Violentmonkey 實際安裝確認圖示正常。URL 辨識、DOM 互動、導覽、安全邊界與效能邏輯皆未變更。
 
-v1.0.8 改善 icon 的跨瀏覽器相容性：將官方 64×64 PNG 直接內嵌在 userscript `@icon` metadata 中，避免依賴遠端圖片抓取與轉換流程；URL 辨識、DOM、導覽、安全邊界與效能邏輯皆未改變。
+| 項目 | 狀態 |
+|---|---|
+| Regression Fixture | **v1.2 / 166 cases** |
+| v1.0.10 icon / metadata 驗收 | **PASS** |
+| v1.0.9 Integration Audit | **PASS** |
+| 核心完整行為驗收基準 | **v1.0.6** |
+| Firefox / Chromium 系 | ✅ 已進行實際瀏覽器與 userscript manager 圖示驗證 |
 
-v1.0.7 是純 metadata／品牌識別更新：新增官方 icon 與 userscript `@icon` metadata；URL 辨識、DOM、導覽、安全邊界與效能邏輯皆與 v1.0.6 相同。
+詳細版本變更請參閱 [CHANGELOG](./CHANGELOG.md) 與 [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases)。
 
-v1.0.6 主要針對穩定性、安全邊界與極端效能進行強化：修正跨文字節點時可能誤開啟截斷網址、不支援 outer scheme 搭配 `ttps://` 的繞過、超長 TextNode 的重複解析成本，以及 DOM ownership／reinjection 衝突問題。
-
-### 這個版本有沒有完整測過？
-
-有。目前的**公開測試頁 v1.2 有 166 個固定測試案例**，涵蓋一般網址、國際化網域、中文與其他 Unicode 文字、標點符號、長文字、安全性邊界，以及過去曾經發生過的錯誤。
-
-v1.0.9 沒有改變執行行為，因此行為驗證承接已完整驗收的 v1.0.6；v1.0.6 已通過完整自動測試與實際 Chromium 瀏覽器操作測試。
-
-- [開啟公開測試頁 v1.2](https://rucifa.github.io/plain-text-url-opener/?v=1.2)
-- [查看 v1.0.9 整合驗收報告](./tests/acceptance/v1.0.9.md)
-- [查看 v1.0.6 版本測試報告](./tests/acceptance/v1.0.6.md)
-- [查看版本變更紀錄](./CHANGELOG.md)
-
-<details>
-<summary>查看較技術性的測試資料</summary>
-
-- URL 解析測試：**151 / 151 PASS**
-- Chromium 瀏覽器實際操作：**168 / 168 PASS**
-- 不支援協定的安全性測試：**10 / 10 PASS**
-- v1.0.5 → v1.0.6 解析差異測試：**100,000 cases，0 個非預期差異**
-- 隨機 fuzz 測試：**100,000 cases，0 crashes**
-- 長文字快取與 Cross-TextNode 長尾效能檢查：**PASS**
-- P0 / P1 關閉檢查：**無 high／medium severity finding**
-
-完整細節請見 [v1.0.6 版本測試報告](./tests/acceptance/v1.0.6.md)。
-
-</details>
-
-### 公開測試頁
-
-Repo 根目錄的 [`index.html`](./index.html) 是固定的**公開測試頁 v1.2**，共有 **166 個固定測試案例**。它用來定義「每種文字應不應該被辨識成網址、應該得到什麼結果」。
-
-測試頁的預期結果獨立於目前腳本版本：如果新版腳本做錯了，應該修正腳本，而不是為了讓新版通過就改掉測試答案。
-
-**Live 測試頁：** https://rucifa.github.io/plain-text-url-opener/?v=1.2
+完整測試紀錄請參閱 [Acceptance Reports](./tests/acceptance/)；也可以直接開啟 [公開回歸測試頁 v1.2](https://rucifa.github.io/plain-text-url-opener/?v=1.2)。
 
 ---
 

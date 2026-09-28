@@ -4,6 +4,24 @@ All notable release changes to Plain Text URL Opener are documented here.
 
 The Regression Fixture has its own version line and should not be changed merely to make a userscript release pass.
 
+## [1.0.10] - 2026-09-28
+
+### Icon optimization
+
+- Re-encode the production 64×64 RGBA icon using the verified compression-level-9 candidate, reducing the PNG from 16,516 bytes to 5,697 bytes while preserving the same decoded image and transparency.
+- Regenerate the embedded userscript `@icon` data URI from the exact same 5,697-byte PNG.
+- Manual installation / rendering checks passed on Firefox + Violentmonkey and Chromium-family browsers + Violentmonkey.
+
+### Documentation
+
+- Refocus the README version/testing section on the current Stable baseline and validation status instead of duplicating per-release history already maintained in CHANGELOG and GitHub Releases.
+
+### Behavior
+
+- No parser, URL-matching, DOM, UI, navigation, cache, security-boundary, performance, or event-handling behavior changed.
+- Regression Fixture v1.2 remains unchanged at 166 cases.
+- v1.0.9 → v1.0.10 normalized runtime identity is required to remain unchanged apart from version identity and `@icon` metadata.
+
 ## [1.0.9] - 2026-09-28
 
 ### Firefox icon compatibility
