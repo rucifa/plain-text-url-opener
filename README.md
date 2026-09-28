@@ -10,7 +10,7 @@
 
 Plain Text URL Opener 是一個輕量的 **userscript（使用者腳本）**。安裝後，只要在網頁上的**純文字網址直接雙擊**，就能開啟網址；不會把整頁文字改寫成超連結，也不會在背景持續掃描整個頁面。
 
-> 🧪 **想先看看它怎麼運作？** [開啟公開測試頁 v1.3（169 個測試案例）](https://rucifa.github.io/plain-text-url-opener/?v=1.3)
+> 🧪 **想先看看它怎麼運作？** [開啟公開測試頁 v1.4（176 個測試案例）](https://rucifa.github.io/plain-text-url-opener/?v=1.4)
 
 ---
 
@@ -156,7 +156,7 @@ Plain Text URL Opener 專注於：
 | Firefox 實際瀏覽器互動（v1.0.11 + Fixture v1.3） | **171 / 171 PASS** |
 | Userscript 實裝 / 圖示驗證 | **Firefox + Violentmonkey、Chromium 系 + Violentmonkey** |
 
-> Fixture v1.4 包含 **176 個 testcase / 178 個預期 interaction**。它完整保留 v1.3 的 169 個既有 testcase 與 expected result，新增 7 個 Defanged URL override interaction 規格。Stable v1.0.11 的完整實際瀏覽器驗證仍是 Fixture v1.3 的 **171 / 171 PASS**；v1.4 新增的 5 個正向 override interaction 目前是下一階段 Implementation 的預期 FAIL target，不宣稱已由 v1.0.11 通過。
+> Fixture v1.4 包含 **176 個 testcase / 178 個預期 interaction**。它完整保留 v1.3 的 169 個既有 testcase 與 expected result，新增 7 個 Defanged URL override interaction 規格。`Ctrl + Shift + 雙擊` 只負責明確解除 Defanged block；**實際開啟方式沿用普通雙擊原本的模式**，因此 override 手勢中的 `Shift` 不觸發「反轉分頁模式」。目前普通雙擊預設為新分頁，所以未來實作完成後 override 也應開新分頁。Stable v1.0.11 的完整實際瀏覽器驗證仍是 Fixture v1.3 的 **171 / 171 PASS**；v1.4 新增的 5 個正向 override interaction 目前是下一階段 Implementation 的預期 FAIL target，不宣稱已由 v1.0.11 通過。
 
 Fixture v1.3 已在 Chromium 140 與 Firefox 141 以 native mouse interaction 驗證；userscript 實裝與圖示顯示另已在 Firefox + Violentmonkey 與 Chromium 系瀏覽器 + Violentmonkey 確認。Fixture v1.4 的規格與 Reproduce 證據請參閱 `tests/acceptance/fixture-v1.4.md`。
 

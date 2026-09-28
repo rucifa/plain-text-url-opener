@@ -10,7 +10,7 @@
 
 Plain Text URL Opener is a lightweight **userscript**. Once installed, double-click a **plain-text URL** on a webpage to open it. The script does not rewrite the whole page into links or continuously scan the page in the background.
 
-> 🧪 **Want to see how it works first?** [Open public test page v1.3 (169 fixed cases)](https://rucifa.github.io/plain-text-url-opener/?v=1.3)
+> 🧪 **Want to see how it works first?** [Open public test page v1.4 (176 fixed cases)](https://rucifa.github.io/plain-text-url-opener/?v=1.4)
 
 ---
 
@@ -154,7 +154,7 @@ Current Stable runtime: **Plain Text URL Opener v1.0.11**; latest Regression Fix
 | Firefox real-browser interaction (v1.0.11 + Fixture v1.3) | **171 / 171 PASS** |
 | Userscript installation / icon rendering | **Firefox + Violentmonkey, Chromium family + Violentmonkey** |
 
-> Fixture v1.4 contains **176 testcases / 178 expected interactions**. It preserves all 169 Fixture v1.3 testcases and expected results unchanged, and adds seven Defanged URL override interaction specifications. Stable v1.0.11's complete real-browser acceptance remains Fixture v1.3 at **171 / 171 PASS**; the five new positive override interactions in v1.4 are intentional expected-failure targets for the next Implementation phase and are not claimed as passing on v1.0.11.
+> Fixture v1.4 contains **176 testcases / 178 expected interactions**. It preserves all 169 Fixture v1.3 testcases and expected results unchanged, and adds seven Defanged URL override interaction specifications. `Ctrl + Shift + double-click` only provides explicit authorization to lift the Defanged block; **the actual open mode must remain the same as ordinary double-click**, so the `Shift` inside the override chord does not trigger the normal open-mode reversal. Ordinary double-click currently defaults to a new tab, so the future override implementation should also open a new tab. Stable v1.0.11's complete real-browser acceptance remains Fixture v1.3 at **171 / 171 PASS**; the five new positive override interactions in v1.4 are intentional expected-failure targets for the next Implementation phase and are not claimed as passing on v1.0.11.
 
 Fixture v1.3 was validated with native mouse interaction on Chromium 140 and Firefox 141. Userscript installation and icon rendering were separately confirmed on Firefox + Violentmonkey and Chromium-family browsers + Violentmonkey. See `tests/acceptance/fixture-v1.4.md` for the Fixture v1.4 specification and Reproduce evidence.
 

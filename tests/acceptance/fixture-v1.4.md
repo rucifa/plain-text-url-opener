@@ -31,6 +31,7 @@ Defanged URLs remain parser-recognized and blocked by default.
 3. The restored URL must still pass the normal HTTP(S) validation path before navigation is allowed.
 4. Existing warnings / safety properties discovered after restoration are not bypassed. In particular, User Info remains visible as a warning.
 5. `Ctrl` alone and `Shift` alone do not grant the override.
+6. The override chord does **not** choose a different open mode. After authorization, navigation must use the same open mode as ordinary double-click. In the current product configuration, ordinary double-click opens a new tab; the `Shift` inside `Ctrl + Shift + double-click` is part of the authorization gesture and must not trigger the normal Shift open-mode reversal.
 
 The override is intentionally narrow. It is not a generic "force open blocked content" mechanism.
 
@@ -46,7 +47,7 @@ The override is intentionally narrow. It is not a generic "force open blocked co
 | `security-override-06` | `hxxps://example.com` + Ctrl-only double-click | remain blocked |
 | `security-override-07` | `hxxps://example.com` + Shift-only double-click | remain blocked |
 
-The existing `security-01` through `security-04` cases remain unchanged and continue to specify ordinary-double-click blocking.
+The existing `security-01` through `security-04` cases remain unchanged and continue to specify ordinary-double-click blocking. The five positive override rows additionally require the same open-mode behavior as ordinary double-click; no extra testcase is needed because this is a clarification of the interaction expectation, not a new URL-recognition case.
 
 ## Machine-readable interaction metadata
 
@@ -56,6 +57,7 @@ Fixture v1.4 adds interaction-layer metadata only to the seven new rows:
 - `data-interaction="ctrl-double-click"`
 - `data-interaction="shift-double-click"`
 - `data-expect-navigation="true|false"`
+- `data-expect-open-mode="same-as-ordinary-double-click"` on the five positive override rows
 - `data-expect-post-warning="none|user-info|defanged"`
 
 `data-expect-blocked="true"` remains true on all seven rows because that field describes the parser candidate before an interaction override. The new navigation fields describe the separate interaction layer.
