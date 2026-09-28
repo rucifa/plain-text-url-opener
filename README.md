@@ -205,7 +205,7 @@ v1.0.10 為目前 Stable baseline。本版只最佳化官方 icon 的 PNG 壓縮
 
 | 項目 | 狀態 |
 |---|---|
-| Regression Fixture | **v1.2 / 166 cases** |
+| Regression Fixture | **v1.3 / 169 cases** |
 | v1.0.10 icon / metadata 驗收 | **PASS** |
 | v1.0.9 Integration Audit | **PASS** |
 | 核心完整行為驗收基準 | **v1.0.6** |
@@ -213,7 +213,7 @@ v1.0.10 為目前 Stable baseline。本版只最佳化官方 icon 的 PNG 壓縮
 
 詳細版本變更請參閱 [CHANGELOG](./CHANGELOG.md) 與 [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases)。
 
-完整測試紀錄請參閱 [Acceptance Reports](./tests/acceptance/)；也可以直接開啟 [公開回歸測試頁 v1.2](https://rucifa.github.io/plain-text-url-opener/?v=1.2)。
+完整測試紀錄請參閱 [Acceptance Reports](./tests/acceptance/)；也可以直接開啟 [公開回歸測試頁 v1.3](https://rucifa.github.io/plain-text-url-opener/?v=1.3)。
 
 ---
 

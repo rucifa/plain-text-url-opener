@@ -203,7 +203,7 @@ v1.0.10 is the current Stable baseline. This release only optimizes the official
 
 | Item | Status |
 |---|---|
-| Regression Fixture | **v1.2 / 166 cases** |
+| Regression Fixture | **v1.3 / 169 cases** |
 | v1.0.10 icon / metadata acceptance | **PASS** |
 | v1.0.9 Integration Audit | **PASS** |
 | Full core behavioral acceptance baseline | **v1.0.6** |
@@ -211,7 +211,7 @@ v1.0.10 is the current Stable baseline. This release only optimizes the official
 
 For detailed release history, see the [CHANGELOG](./CHANGELOG.md) and [GitHub Releases](https://github.com/rucifa/plain-text-url-opener/releases).
 
-For complete validation evidence, see the [Acceptance Reports](./tests/acceptance/), or open the [public Regression Fixture v1.2](https://rucifa.github.io/plain-text-url-opener/?v=1.2).
+For complete validation evidence, see the [Acceptance Reports](./tests/acceptance/), or open the [public Regression Fixture v1.3](https://rucifa.github.io/plain-text-url-opener/?v=1.3).
 
 ---
 
