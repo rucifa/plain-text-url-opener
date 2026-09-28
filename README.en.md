@@ -175,7 +175,7 @@ This repository's implementation is independently written. No source code from t
 - Relative paths by default
 - Broad non-HTTP(S) URI schemes
 - A full embedded Public Suffix List
-- Inaccessible content inside closed Shadow DOM
+- Plain-text URLs inside Shadow DOM are not guaranteed to behave identically across browsers; closed Shadow DOM especially depends on browser event and Selection behavior
 - Some scheme-less IDN forms remain deliberately conservative
 
 These are current product boundaries and should not automatically be treated as bugs.
@@ -214,6 +214,7 @@ Yes. The current **public test page v1.2 contains 166 fixed test cases** coverin
 v1.0.9 does not change runtime behavior, so behavioral validation is inherited from the fully accepted v1.0.6 implementation. v1.0.6 passed the complete automated suite and real Chromium interaction testing.
 
 - [Open public test page v1.2](https://rucifa.github.io/plain-text-url-opener/?v=1.2)
+- [Read the v1.0.9 integration acceptance report](./tests/acceptance/v1.0.9.md)
 - [Read the v1.0.6 test report](./tests/acceptance/v1.0.6.md)
 - [Read the changelog](./CHANGELOG.md)
 

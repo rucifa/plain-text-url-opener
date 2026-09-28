@@ -177,7 +177,7 @@ Plain Text URL Opener 的設計與測試方法曾參考上述兩個相關專案�
 - 預設相對路徑
 - 廣泛的非 HTTP(S) 網址協定
 - 完整的網域後綴清單（Public Suffix List）
-- 封閉式 Shadow DOM 內、腳本本來就無法存取的內容
+- Shadow DOM 內的純文字網址不保證跨瀏覽器一致支援；closed Shadow DOM 尤其取決於瀏覽器的事件與 Selection 行為
 - 部分省略 `http://` / `https://` 的國際化網域仍採保守辨識策略
 
 這些是目前的產品邊界，不應自動視為 bug。
@@ -216,6 +216,7 @@ v1.0.6 主要針對穩定性、安全邊界與極端效能進行強化：修正�
 v1.0.9 沒有改變執行行為，因此行為驗證承接已完整驗收的 v1.0.6；v1.0.6 已通過完整自動測試與實際 Chromium 瀏覽器操作測試。
 
 - [開啟公開測試頁 v1.2](https://rucifa.github.io/plain-text-url-opener/?v=1.2)
+- [查看 v1.0.9 整合驗收報告](./tests/acceptance/v1.0.9.md)
 - [查看 v1.0.6 版本測試報告](./tests/acceptance/v1.0.6.md)
 - [查看版本變更紀錄](./CHANGELOG.md)
 

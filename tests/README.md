@@ -11,6 +11,10 @@ The canonical browser-facing test specification is the repository root `index.ht
 The fixture defines expected behavior. It is intentionally independent from userscript release versions and must not be edited merely to make a current implementation pass.
 
 ### Acceptance Reports
+### Current post-release integration audit
+
+- `acceptance/v1.0.9.md` — Chromium + Firefox integration, security, iframe, SPA, Shadow DOM, editable-control, reinjection, and bounded-performance smoke audit for v1.0.9.
+
 
 `tests/acceptance/` contains version-specific test results. These reports record what a particular release actually passed, failed, fixed, or intentionally left outside scope.
 
